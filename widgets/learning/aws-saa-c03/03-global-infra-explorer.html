@@ -1,0 +1,284 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chương 03 — Trạm Mô Phỏng Hạ Tầng Toàn Cầu AWS</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="stylesheet" href="../../../shared/notion-theme.css" />
+  <script src="../../../shared/notion-widget.js"></script>
+</head>
+<body class="bg-transparent text-[var(--foreground)] antialiased p-2">
+  <div class="bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)] rounded-xl p-4 shadow-sm">
+    <!-- Header + Tab Bar -->
+    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-[var(--border)]">
+      <div>
+        <h2 class="text-[var(--foreground)] font-semibold text-base">Chương 03 — Trạm Mô Phỏng Hạ Tầng Toàn Cầu AWS</h2>
+        <p class="text-[var(--muted-foreground)] text-xs">Mô phỏng chịu lỗi Region/AZ, 4 tiêu chí chọn Region & phạm vi dịch vụ Global vs. Regional</p>
+      </div>
+      <div class="flex flex-wrap gap-1.5" id="tab-buttons">
+        <button onclick="switchTab('az')" id="btn-az" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--primary)] text-[var(--primary-foreground)] transition">🏗️ Mô phỏng Region & AZ</button>
+        <button onclick="switchTab('region')" id="btn-region" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] transition">🧭 4 Tiêu chí chọn Region</button>
+        <button onclick="switchTab('scope')" id="btn-scope" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] transition">🌐 Global vs. Regional</button>
+      </div>
+    </div>
+
+    <!-- TAB 1: Region & AZ Disaster Isolation Simulator -->
+    <div id="tab-az" class="space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-2 bg-[var(--background)] border border-[var(--border)] rounded-lg p-2.5">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-medium">Kiến trúc triển khai:</span>
+          <button onclick="setArchMode('single')" id="mode-single" class="px-2.5 py-1 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] transition">Single-AZ (1 AZ)</button>
+          <button onclick="setArchMode('multi')" id="mode-multi" class="px-2.5 py-1 rounded text-xs font-medium bg-[var(--primary)] text-[var(--primary-foreground)] transition">Multi-AZ (Chuẩn SAA-C03)</button>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="toggleDisaster()" id="btn-disaster" class="px-3 py-1 rounded text-xs font-semibold border border-[var(--border)] bg-[var(--secondary)] text-[var(--secondary-foreground)] transition">⚡ Giả lập sự cố mất điện AZ-a</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5" id="az-grid"></div>
+
+      <div class="bg-[var(--background)] border border-[var(--border)] rounded-lg p-3 flex flex-wrap items-center justify-between gap-2" id="az-status-banner"></div>
+    </div>
+
+    <!-- TAB 2: 4-Factor Region Selection Advisor -->
+    <div id="tab-region" class="hidden">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-start">
+        <div class="md:col-span-5 flex flex-col gap-1.5" id="scenario-list"></div>
+        <div class="md:col-span-7 bg-[var(--background)] border border-[var(--border)] rounded-lg p-3.5" id="scenario-detail"></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: Global vs Region-Scoped Console Simulator -->
+    <div id="tab-scope" class="hidden space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-2 bg-[var(--background)] border border-[var(--border)] rounded-lg p-2.5">
+        <div class="flex gap-1.5">
+          <button onclick="filterScope('all')" id="filter-all" class="px-2.5 py-1 rounded text-xs font-medium bg-[var(--primary)] text-[var(--primary-foreground)]">Tất cả (9)</button>
+          <button onclick="filterScope('Global')" id="filter-Global" class="px-2.5 py-1 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)]">🌍 Global Services (4)</button>
+          <button onclick="filterScope('Regional')" id="filter-Regional" class="px-2.5 py-1 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)]">📍 Region-Scoped (5)</button>
+        </div>
+        <div class="text-xs text-[var(--muted-foreground)]">
+          Góc phải trên AWS Console: <span id="console-indicator" class="font-semibold text-[var(--foreground)] px-2 py-0.5 rounded bg-[var(--secondary)]">Bấm vào dịch vụ bên dưới để kiểm tra</span>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" id="service-cards"></div>
+      <div id="service-explanation" class="bg-[var(--background)] border border-[var(--border)] rounded-lg p-2.5 text-xs text-[var(--muted-foreground)]">
+        💡 <strong class="text-[var(--foreground)]">Mẹo thi SAA-C03:</strong> Hầu hết dịch vụ AWS đều theo phạm vi <strong class="text-[var(--foreground)]">Region-scoped</strong> (nếu tạo EC2 tại <code class="px-1 rounded bg-[var(--secondary)]">eu-west-1</code> rồi đổi Console sang <code class="px-1 rounded bg-[var(--secondary)]">us-east-1</code>, bạn sẽ không thấy máy chủ đó nữa). Chỉ một số ít dịch vụ quản trị/biên như <strong class="text-[var(--foreground)]">IAM, Route 53, CloudFront, WAF</strong> là <strong class="text-[var(--foreground)]">Global</strong>.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let archMode = 'multi';
+    let disasterActive = false;
+
+    const azData = [
+      { id: 'ap-southeast-2a', name: 'AZ 1: ap-southeast-2a', dcs: ['DC-2a1 (Power A)', 'DC-2a2 (Power B)'], primary: true },
+      { id: 'ap-southeast-2b', name: 'AZ 2: ap-southeast-2b', dcs: ['DC-2b1 (Isolated)', 'DC-2b2 (Isolated)'], primary: false },
+      { id: 'ap-southeast-2c', name: 'AZ 3: ap-southeast-2c', dcs: ['DC-2c1 (Isolated)'], primary: false }
+    ];
+
+    function setArchMode(mode) {
+      archMode = mode;
+      document.getElementById('mode-single').className = mode === 'single'
+        ? 'px-2.5 py-1 rounded text-xs font-medium bg-[var(--primary)] text-[var(--primary-foreground)] transition'
+        : 'px-2.5 py-1 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] transition';
+      document.getElementById('mode-multi').className = mode === 'multi'
+        ? 'px-2.5 py-1 rounded text-xs font-medium bg-[var(--primary)] text-[var(--primary-foreground)] transition'
+        : 'px-2.5 py-1 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] transition';
+      renderAZs();
+    }
+
+    function toggleDisaster() {
+      disasterActive = !disasterActive;
+      const btn = document.getElementById('btn-disaster');
+      btn.textContent = disasterActive ? '🔄 Khôi phục lại AZ-a (Reset)' : '⚡ Giả lập sự cố mất điện AZ-a';
+      btn.className = disasterActive
+        ? 'px-3 py-1 rounded text-xs font-semibold bg-[var(--primary)] text-[var(--primary-foreground)] transition'
+        : 'px-3 py-1 rounded text-xs font-semibold border border-[var(--border)] bg-[var(--secondary)] text-[var(--secondary-foreground)] transition';
+      renderAZs();
+    }
+
+    function renderAZs() {
+      const grid = document.getElementById('az-grid');
+      grid.innerHTML = azData.map((az, idx) => {
+        const isDown = idx === 0 && disasterActive;
+        const hasWorkload = archMode === 'multi' || idx === 0;
+        const statusLabel = isDown
+          ? '❌ Sự cố (Disrupted)'
+          : (hasWorkload ? '✅ Đang chạy (Active App)' : '⚪ Không đặt máy chủ');
+
+        return `
+          <div class="bg-[var(--background)] border border-[var(--border)] rounded-lg p-3 transition ${isDown ? 'opacity-65' : ''}">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="font-semibold text-xs text-[var(--foreground)]">${az.name}</span>
+              <span class="text-xs px-1.5 py-0.5 rounded bg-[var(--secondary)] text-[var(--secondary-foreground)] font-medium">${statusLabel}</span>
+            </div>
+            <div class="space-y-1 mb-2">
+              ${az.dcs.map(dc => `<div class="text-xs px-2 py-1 rounded bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)]">🏢 ${dc}</div>`).join('')}
+            </div>
+            <div class="text-xs text-[var(--muted-foreground)] border-t border-[var(--border)] pt-1.5">
+              ${isDown ? 'Cô lập thảm họa: Không lan sang AZ-b & AZ-c.' : 'Kết nối cáp quang băng thông cao, độ trễ cực thấp (< 2ms).'}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const banner = document.getElementById('az-status-banner');
+      if (!disasterActive) {
+        banner.innerHTML = `
+          <div class="text-xs">
+            <strong class="text-[var(--foreground)]">Trạng thái Region Sydney (ap-southeast-2):</strong> Bình thường (3 AZs hoạt động độc lập, nối với nhau qua mạng cáp quang tốc độ cao).
+          </div>
+          <span class="px-2 py-0.5 rounded text-xs font-semibold bg-[var(--secondary)] text-[var(--foreground)]">Uptime: 100%</span>
+        `;
+      } else if (archMode === 'single') {
+        banner.innerHTML = `
+          <div class="text-xs">
+            <strong class="text-[var(--foreground)]">🚨 HỆ THỐNG SẬP HOÀN TOÀN (DOWNTIME):</strong> Vì bạn chỉ đặt máy chủ tại <code class="px-1 rounded bg-[var(--secondary)]">ap-southeast-2a</code> (Single-AZ), khi AZ này gặp thảm họa thì toàn bộ ứng dụng ngừng hoạt động!
+          </div>
+          <span class="px-2 py-0.5 rounded text-xs font-semibold bg-[var(--primary)] text-[var(--primary-foreground)]">Outage: 100%</span>
+        `;
+      } else {
+        banner.innerHTML = `
+          <div class="text-xs">
+            <strong class="text-[var(--foreground)]">🛡️ HỆ THỐNG VẪN SỐNG (HIGH AVAILABILITY):</strong> Dù <code class="px-1 rounded bg-[var(--secondary)]">ap-southeast-2a</code> bị cô lập vì sự cố, Load Balancer lập tức điều hướng người dùng sang <code class="px-1 rounded bg-[var(--secondary)]">2b</code> và <code class="px-1 rounded bg-[var(--secondary)]">2c</code>!
+          </div>
+          <span class="px-2 py-0.5 rounded text-xs font-semibold bg-[var(--primary)] text-[var(--primary-foreground)]">Chịu lỗi thành công (Multi-AZ)</span>
+        `;
+      }
+    }
+
+    const scenarios = [
+      {
+        id: 1,
+        factor: '1. Compliance (Tuân thủ pháp lý & Chủ quyền dữ liệu)',
+        trigger: 'Đề bài có từ: "data residency", "government regulation", "GDPR", "data must not leave country"',
+        question: 'Một công ty Y tế tại Đức cần triển khai ứng dụng trên AWS. Luật pháp Đức quy định dữ liệu bệnh nhân tuyệt đối không được rời khỏi lãnh thổ Đức, dù Region us-east-1 có chi phí rẻ hơn 20%. Chọn Region nào?',
+        winner: 'eu-central-1 (Frankfurt, Đức)',
+        why: 'Luật pháp & Quản trị dữ liệu (Compliance) luôn là ưu tiên số 1. Dữ liệu trong một AWS Region không bao giờ tự ý rời khỏi Region đó nếu bạn không cấu hình sao chép.'
+      },
+      {
+        id: 2,
+        factor: '2. Proximity / Latency (Khoảng cách & Độ trễ người dùng)',
+        trigger: 'Đề bài có từ: "lowest latency", "closest to end users", "real-time gaming/trading in Asia"',
+        question: 'Công ty phát hành tựa game di động thời gian thực với 90% người chơi tại Đông Nam Á và Việt Nam, không bị ràng buộc pháp lý đặc biệt. Nên đặt cụm máy chủ ở đâu?',
+        winner: 'ap-southeast-1 (Singapore) hoặc ap-east-1 (Hong Kong)',
+        why: 'Đặt máy chủ tại Region gần khách hàng nhất giúp giảm quãng đường truyền gói tin vật lý, mang lại độ trễ (latency) thấp nhất.'
+      },
+      {
+        id: 3,
+        factor: '3. Available Services (Tính sẵn có của dịch vụ tại Region)',
+        trigger: 'Đề bài có từ: "new AWS feature/service", "service not available in current region"',
+        question: 'Đội phát triển muốn tích hợp một tính năng Generative AI mới vừa ra mắt tại sự kiện AWS re:Invent, nhưng tính năng này chưa được triển khai tại Region ap-southeast-2 (Sydney). Phải làm gì?',
+        winner: 'Kiểm tra AWS Regional Services List & gọi dịch vụ từ us-east-1 / us-west-2',
+        why: 'Không phải Region nào cũng có đủ 100% dịch vụ mới. Các dịch vụ mới thường ra mắt đầu tiên tại us-east-1 (N. Virginia) hoặc us-west-2 (Oregon).'
+      },
+      {
+        id: 4,
+        factor: '4. Pricing (Chi phí chênh lệch giữa các Region)',
+        trigger: 'Đề bài có từ: "minimize cost", "batch processing", "no latency or compliance constraints"',
+        question: 'Hệ thống chạy tác vụ phân tích dữ liệu (Batch Job) vào ban đêm, không có người dùng tương tác trực tiếp và dữ liệu ẩn danh không vướng quy định quốc gia. Chọn Region theo tiêu chí nào?',
+        winner: 'Chọn Region có biểu giá Compute/Storage thấp nhất (ví dụ: us-east-1 / us-east-2)',
+        why: 'Cùng một cấu hình EC2 hay S3 nhưng giá thuê tại Sao Paulo (sa-east-1) hay Tokyo có thể đắt hơn đáng kể so với N. Virginia (us-east-1).'
+      }
+    ];
+
+    function renderScenarios(activeId = 1) {
+      const list = document.getElementById('scenario-list');
+      const detail = document.getElementById('scenario-detail');
+      list.innerHTML = scenarios.map(s => {
+        const active = s.id === activeId;
+        return `
+          <button onclick="renderScenarios(${s.id})" class="text-left px-3 py-2 rounded-lg border text-xs transition ${
+            active
+              ? 'bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] font-semibold'
+              : 'bg-[var(--background)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--secondary)]'
+          }">
+            ${s.factor}
+          </button>
+        `;
+      }).join('');
+
+      const item = scenarios.find(s => s.id === activeId);
+      detail.innerHTML = `
+        <div class="space-y-2.5">
+          <div>
+            <span class="text-xs px-2 py-0.5 rounded bg-[var(--secondary)] text-[var(--secondary-foreground)] font-medium">🎯 Tín hiệu đề thi (Exam Signal)</span>
+            <p class="text-xs font-mono mt-1 text-[var(--foreground)]">${item.trigger}</p>
+          </div>
+          <div class="border-t border-[var(--border)] pt-2">
+            <p class="text-xs font-semibold text-[var(--foreground)]">❓ Tình huống thực tế:</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-0.5">${item.question}</p>
+          </div>
+          <div class="border-t border-[var(--border)] pt-2">
+            <p class="text-xs font-semibold text-[var(--foreground)]">✅ Quyết định của Solutions Architect: <span class="underline">${item.winner}</span></p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-0.5">${item.why}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    const services = [
+      { name: 'AWS IAM', scope: 'Global', type: 'Security & Identity', consoleRegion: 'Global (Không cần chọn Region)', note: 'Users, Groups, Roles, Policies áp dụng toàn tài khoản AWS.' },
+      { name: 'Amazon Route 53', scope: 'Global', type: 'DNS Service', consoleRegion: 'Global (Không cần chọn Region)', note: 'Hệ thống phân giải tên miền toàn cầu thông qua mạng Anycast.' },
+      { name: 'Amazon CloudFront', scope: 'Global', type: 'CDN (400+ PoPs)', consoleRegion: 'Global (Không cần chọn Region)', note: 'Phân phối nội dung qua hơn 400 Edge Locations trên 90+ thành phố.' },
+      { name: 'AWS WAF', scope: 'Global', type: 'Web App Firewall', consoleRegion: 'Global (khi gắn CloudFront) / Regional (khi gắn ALB)', note: 'Trong bài giảng giới thiệu nằm ở nhóm Global Console khi bảo vệ CloudFront.' },
+      { name: 'Amazon EC2', scope: 'Regional', type: 'Compute (IaaS)', consoleRegion: 'Theo Region (VD: eu-west-1 Ireland)', note: 'Máy chủ ảo nằm trong một Region (và gắn cụ thể vào 1 AZ).' },
+      { name: 'Elastic Beanstalk', scope: 'Regional', type: 'Compute (PaaS)', consoleRegion: 'Theo Region (VD: us-east-1)', note: 'Nền tảng triển khai ứng dụng tự động quản lý hạ tầng theo từng Region.' },
+      { name: 'AWS Lambda', scope: 'Regional', type: 'Serverless (FaaS)', consoleRegion: 'Theo Region (VD: ap-southeast-1)', note: 'Hàm Serverless chạy trong phạm vi một Region (tự động Multi-AZ ngầm).' },
+      { name: 'Amazon Rekognition', scope: 'Regional', type: 'AI / ML (SaaS)', consoleRegion: 'Theo Region (Phải kiểm tra Region Table)', note: 'Dịch vụ nhận diện hình ảnh/video theo Region; không phải Region nào cũng có.' },
+      { name: 'Amazon S3', scope: 'Regional', type: 'Object Storage', consoleRegion: 'Tên Bucket là Global, nhưng Dữ liệu lưu theo Region', note: 'Bẫy kinh điển: Giao diện S3 liệt kê toàn bộ Bucket, nhưng mỗi Bucket thuộc về 1 Region cố định.' }
+    ];
+
+    let currentFilter = 'all';
+    function filterScope(scope) {
+      currentFilter = scope;
+      ['all', 'Global', 'Regional'].forEach(k => {
+        document.getElementById('filter-' + k).className = k === scope
+          ? 'px-2.5 py-1 rounded text-xs font-medium bg-[var(--primary)] text-[var(--primary-foreground)]'
+          : 'px-2.5 py-1 rounded text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)]';
+      });
+      renderServices();
+    }
+
+    function selectService(idx) {
+      const s = services[idx];
+      document.getElementById('console-indicator').textContent = `🌐 Region Selector: ${s.consoleRegion}`;
+      document.getElementById('service-explanation').innerHTML = `
+        🔍 <strong class="text-[var(--foreground)]">${s.name} (${s.type}):</strong> ${s.note}
+      `;
+    }
+
+    function renderServices() {
+      const container = document.getElementById('service-cards');
+      container.innerHTML = services
+        .map((s, idx) => ({ ...s, idx }))
+        .filter(s => currentFilter === 'all' || s.scope === currentFilter)
+        .map(s => `
+          <button onclick="selectService(${s.idx})" class="text-left p-2.5 rounded-lg bg-[var(--background)] border border-[var(--border)] hover:bg-[var(--secondary)] transition">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-xs text-[var(--foreground)]">${s.name}</span>
+              <span class="text-xs px-1.5 py-0.5 rounded bg-[var(--secondary)] text-[var(--secondary-foreground)]">${s.scope === 'Global' ? '🌍 Global' : '📍 Regional'}</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">${s.type}</p>
+          </button>
+        `).join('');
+    }
+
+    function switchTab(tab) {
+      ['az', 'region', 'scope'].forEach(t => {
+        document.getElementById('tab-' + t).classList.toggle('hidden', t !== tab);
+        document.getElementById('btn-' + t).className = t === tab
+          ? 'px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--primary)] text-[var(--primary-foreground)] transition'
+          : 'px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] transition';
+      });
+    }
+
+    renderAZs();
+    renderScenarios(1);
+    renderServices();
+  </script>
+</body>
+</html>
+
