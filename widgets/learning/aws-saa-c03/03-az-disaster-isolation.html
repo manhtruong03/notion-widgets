@@ -1,0 +1,227 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mô phỏng Cô lập Thảm họa giữa các Availability Zones (Single-AZ vs. Multi-AZ)</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --surface: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #2563eb;
+      --ok: #059669;
+      --ok-soft: #ecfdf5;
+      --err: #dc2626;
+      --err-soft: #fef2f2;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #191919;
+        --surface: #202020;
+        --border: #2f2f2f;
+        --text: #f1f5f9;
+        --muted: #94a3b8;
+        --accent: #60a5fa;
+        --ok: #34d399;
+        --ok-soft: rgba(16, 185, 129, 0.15);
+        --err: #f87171;
+        --err-soft: rgba(239, 68, 68, 0.15);
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      height: 100%;
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      padding: 9px 12px;
+      max-height: 215px;
+    }
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .mode-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .btn {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .btn-disaster {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 5px;
+      border: 1px solid var(--err);
+      background: var(--err-soft);
+      color: var(--err);
+      cursor: pointer;
+    }
+    .az-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .az-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 8px;
+    }
+    .az-box.down {
+      border-color: var(--err);
+      background: var(--err-soft);
+    }
+    .az-box.healthy-active {
+      border-color: var(--ok);
+    }
+    .az-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .badge {
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+    .badge.ok { background: var(--ok-soft); color: var(--ok); }
+    .badge.err { background: var(--err-soft); color: var(--err); }
+    .badge.idle { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+    .dc-line {
+      font-size: 10.5px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .outcome {
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      line-height: 1.35;
+    }
+    .outcome.ok {
+      background: var(--ok-soft);
+      border: 1px solid var(--ok);
+    }
+    .outcome.err {
+      background: var(--err-soft);
+      border: 1px solid var(--err);
+    }
+  </style>
+  <link rel="stylesheet" href="../../../shared/notion-theme.css" />
+  <script src="../../../shared/notion-widget.js"></script>
+</head>
+<body>
+  <div class="card">
+    <div class="controls">
+      <div class="mode-group">
+        <span class="label">🔬 Mô phỏng chịu lỗi:</span>
+        <button class="btn" id="btnSingle" type="button" onclick="setMode('single')">Single-AZ (Chỉ AZ 2a)</button>
+        <button class="btn active" id="btnMulti" type="button" onclick="setMode('multi')">Multi-AZ (2a + 2b + 2c)</button>
+      </div>
+      <button class="btn-disaster" id="btnDisaster" type="button" onclick="toggleOutage()">⚡ Giả lập mất điện AZ 2a</button>
+    </div>
+
+    <div class="az-grid" id="azGrid"></div>
+    <div class="outcome ok" id="outcomeBox"></div>
+  </div>
+
+  <script>
+    let mode = "multi";
+    let outage = false;
+
+    function setMode(m) {
+      mode = m;
+      document.getElementById("btnSingle").className = "btn" + (m === "single" ? " active" : "");
+      document.getElementById("btnMulti").className = "btn" + (m === "multi" ? " active" : "");
+      render();
+    }
+
+    function toggleOutage() {
+      outage = !outage;
+      document.getElementById("btnDisaster").textContent = outage
+        ? "🔄 Khôi phục AZ 2a (Reset)"
+        : "⚡ Giả lập mất điện AZ 2a";
+      render();
+    }
+
+    function render() {
+      const azs = [
+        { name: "AZ 2a", dcs: "🏢 DC-2a1 + DC-2a2 (Primary)", active: true, failed: outage },
+        { name: "AZ 2b", dcs: "🏢 DC-2b1 + DC-2b2 (Cô lập 2a)", active: mode === "multi", failed: false },
+        { name: "AZ 2c", dcs: "🏢 DC-2c1 (Cô lập 2a & 2b)", active: mode === "multi", failed: false }
+      ];
+
+      document.getElementById("azGrid").innerHTML = azs.map(az => {
+        const boxClass = az.failed ? "az-box down" : (az.active ? "az-box healthy-active" : "az-box");
+        let badge = `<span class="badge idle">Trống</span>`;
+        if (az.failed) badge = `<span class="badge err">❌ Sập AZ</span>`;
+        else if (az.active) badge = `<span class="badge ok">✅ Active</span>`;
+
+        return `
+          <div class="${boxClass}">
+            <div class="az-head"><span>${az.name}</span>${badge}</div>
+            <div class="dc-line">${az.dcs}</div>
+          </div>
+        `;
+      }).join("");
+
+      const out = document.getElementById("outcomeBox");
+      if (!outage) {
+        out.className = "outcome ok";
+        out.innerHTML = mode === "multi"
+          ? `✅ <b>Bình thường (Multi-AZ):</b> Các AZ đồng bộ qua cáp quang độ trễ cực thấp. Hãy bấm <b>"Giả lập mất điện AZ 2a"</b>.`
+          : `⚠️ <b>Bình thường (Single-AZ):</b> Cả 2 DC trong AZ 2a nằm chung vùng rủi ro thiên tai. Hãy bấm <b>"Giả lập mất điện AZ 2a"</b>.`;
+      } else if (mode === "single") {
+        out.className = "outcome err";
+        out.innerHTML = `🚨 <b>SẬP 100% HỆ THỐNG:</b> Dù AZ 2a có 2 tòa DC, khi cả vùng AZ 2a mất điện/ngập lụt thì ứng dụng ngừng hoạt động hoàn toàn!`;
+      } else {
+        out.className = "outcome ok";
+        out.innerHTML = `🛡️ <b>KHÔNG GIÁN ĐOẠN (High Availability):</b> Sự cố bị cô lập tại AZ 2a; lưu lượng tự động chuyển sang <b>AZ 2b & 2c</b>!`;
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>
+
