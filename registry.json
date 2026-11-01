@@ -97,13 +97,13 @@
                         "group":  "aws-saa-c03",
                         "path":  "widgets/learning/aws-saa-c03/03-az-disaster-isolation.html",
                         "embed_url":  "https://manhtruong03.github.io/notion-widgets/widgets/learning/aws-saa-c03/03-az-disaster-isolation.html",
-                        "description":  "Explorable Explanation kiểm chứng tại sao 1 AZ gồm nhiều Data Centers vẫn cần triển khai Multi-AZ (Ultra-compact \u003c= 215px)",
+                        "description":  "Explorable Explanation kiểm chứng tại sao 1 AZ gồm nhiều Data Centers vẫn cần triển khai Multi-AZ",
                         "tags":  [
                                      "aws-saa-c03",
                                      "section-03",
                                      "multi-az"
                                  ],
-                        "recommended_height":  215,
+                        "recommended_height":  185,
                         "updated_at":  "2026-11-01"
                     }
                 ]

@@ -1,92 +1,93 @@
 ﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
+  <link rel="stylesheet" href="../../../shared/notion-theme.css" />
+  <script src="../../../shared/notion-widget.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mô phỏng Cô lập Thảm họa giữa các Availability Zones (Single-AZ vs. Multi-AZ)</title>
   <style>
     :root {
-      --bg: #ffffff;
-      --surface: #f8fafc;
-      --border: #e2e8f0;
-      --text: #0f172a;
-      --muted: #64748b;
-      --accent: #2563eb;
-      --ok: #059669;
-      --ok-soft: #ecfdf5;
-      --err: #dc2626;
-      --err-soft: #fef2f2;
+      --w-bg: #ffffff;
+      --w-surface: #f8fafc;
+      --w-border: #cbd5e1;
+      --w-text: #0f172a;
+      --w-muted: #475569;
+      --w-accent: #2563eb;
+      --w-ok: #059669;
+      --w-ok-soft: #ecfdf5;
+      --w-err: #dc2626;
+      --w-err-soft: #fef2f2;
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #191919;
-        --surface: #202020;
-        --border: #2f2f2f;
-        --text: #f1f5f9;
-        --muted: #94a3b8;
-        --accent: #60a5fa;
-        --ok: #34d399;
-        --ok-soft: rgba(16, 185, 129, 0.15);
-        --err: #f87171;
-        --err-soft: rgba(239, 68, 68, 0.15);
+        --w-bg: #191919;
+        --w-surface: #222222;
+        --w-border: #383838;
+        --w-text: #f1f5f9;
+        --w-muted: #94a3b8;
+        --w-accent: #60a5fa;
+        --w-ok: #34d399;
+        --w-ok-soft: rgba(16, 185, 129, 0.16);
+        --w-err: #f87171;
+        --w-err-soft: rgba(239, 68, 68, 0.16);
       }
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      overflow: hidden;
-      height: 100%;
+      background: var(--w-bg);
+      color: var(--w-text);
+      padding: 4px;
     }
     .card {
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--surface);
-      padding: 9px 12px;
-      max-height: 215px;
+      border: 1px solid var(--w-border);
+      border-radius: 10px;
+      background: var(--w-surface);
+      padding: 10px 12px;
     }
     .controls {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
       gap: 6px;
       margin-bottom: 8px;
     }
     .mode-group {
       display: flex;
       align-items: center;
+      flex-wrap: wrap;
       gap: 5px;
     }
     .label {
-      font-size: 11px;
+      font-size: 11.5px;
       font-weight: 700;
-      text-transform: uppercase;
-      color: var(--accent);
+      color: var(--w-accent);
     }
     .btn {
       font-size: 11px;
       font-weight: 600;
       padding: 3px 8px;
       border-radius: 5px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text);
+      border: 1px solid var(--w-border);
+      background: var(--w-bg);
+      color: var(--w-text);
       cursor: pointer;
     }
     .btn.active {
-      background: var(--accent);
+      background: var(--w-accent);
       color: #fff;
-      border-color: var(--accent);
+      border-color: var(--w-accent);
     }
     .btn-disaster {
       font-size: 11px;
       font-weight: 700;
       padding: 3px 9px;
       border-radius: 5px;
-      border: 1px solid var(--err);
-      background: var(--err-soft);
-      color: var(--err);
+      border: 1px solid var(--w-err);
+      background: var(--w-err-soft);
+      color: var(--w-err);
       cursor: pointer;
     }
     .az-grid {
@@ -96,17 +97,17 @@
       margin-bottom: 8px;
     }
     .az-box {
-      background: var(--bg);
-      border: 1px solid var(--border);
+      background: var(--w-bg);
+      border: 1px solid var(--w-border);
       border-radius: 6px;
       padding: 6px 8px;
     }
     .az-box.down {
-      border-color: var(--err);
-      background: var(--err-soft);
+      border-color: var(--w-err);
+      background: var(--w-err-soft);
     }
     .az-box.healthy-active {
-      border-color: var(--ok);
+      border-color: var(--w-ok);
     }
     .az-head {
       display: flex;
@@ -122,12 +123,12 @@
       border-radius: 999px;
       font-weight: 700;
     }
-    .badge.ok { background: var(--ok-soft); color: var(--ok); }
-    .badge.err { background: var(--err-soft); color: var(--err); }
-    .badge.idle { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+    .badge.ok { background: var(--w-ok-soft); color: var(--w-ok); }
+    .badge.err { background: var(--w-err-soft); color: var(--w-err); }
+    .badge.idle { background: var(--w-surface); color: var(--w-muted); border: 1px solid var(--w-border); }
     .dc-line {
       font-size: 10.5px;
-      color: var(--muted);
+      color: var(--w-muted);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -139,16 +140,14 @@
       line-height: 1.35;
     }
     .outcome.ok {
-      background: var(--ok-soft);
-      border: 1px solid var(--ok);
+      background: var(--w-ok-soft);
+      border: 1px solid var(--w-ok);
     }
     .outcome.err {
-      background: var(--err-soft);
-      border: 1px solid var(--err);
+      background: var(--w-err-soft);
+      border: 1px solid var(--w-err);
     }
   </style>
-  <link rel="stylesheet" href="../../../shared/notion-theme.css" />
-  <script src="../../../shared/notion-widget.js"></script>
 </head>
 <body>
   <div class="card">
