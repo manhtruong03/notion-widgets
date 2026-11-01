@@ -1,0 +1,40 @@
+{
+  "hub_title": "Notion Interactive Widgets Hub",
+  "base_url": "https://manhtruong03.github.io/notion-widgets",
+  "categories": [
+    {
+      "id": "learning",
+      "name": "Learning & Architecture Simulators",
+      "description": "Các mô hình tương tác, sơ đồ kiến trúc sống và bộ mô phỏng phục vụ ghi chép học tập trên Notion."
+    },
+    {
+      "id": "work",
+      "name": "Engineering & Project Management",
+      "description": "Micro-tools cho BrSE, Dev, QA, tính toán ước lượng, ma trận quyết định và kiểm thử."
+    },
+    {
+      "id": "productivity",
+      "name": "Productivity & Trackers",
+      "description": "Tiện ích quản lý thời gian, tiến độ mục tiêu, checklist trạng thái cho trang cá nhân Notion."
+    },
+    {
+      "id": "utilities",
+      "name": "General Utilities & Calculators",
+      "description": "Các công cụ tính toán, quy đổi và biểu đồ tương tác đa năng."
+    }
+  ],
+  "widgets": [
+    {
+      "id": "aws-saa-c03-01-intro",
+      "title": "Chương 01 — Trạm Điều Khiển Tương Tác SAA-C03",
+      "category": "learning",
+      "group": "aws-saa-c03",
+      "path": "widgets/learning/aws-saa-c03/01-intro-control-center.html",
+      "embed_url": "https://manhtruong03.github.io/notion-widgets/widgets/learning/aws-saa-c03/01-intro-control-center.html",
+      "description": "Bản đồ tương tác 7 tầng kiến trúc ánh xạ 33 chương AWS SAA-C03, bộ mô phỏng điểm thi Compensatory Scoring (720/1000) và chẩn đoán kích hoạt AWS Account.",
+      "tags": ["aws", "saa-c03", "architecture", "simulator"],
+      "recommended_height": 420,
+      "updated_at": "2026-11-01"
+    }
+  ]
+}

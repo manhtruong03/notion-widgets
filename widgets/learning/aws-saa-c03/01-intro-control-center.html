@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chương 01 — Trạm Điều Khiển Tương Tác SAA-C03</title>
+  <link rel="stylesheet" href="../../../shared/notion-theme.css" />
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <script src="../../../shared/notion-widget.js"></script>
+</head>
+<body class="bg-transparent text-[var(--foreground)] antialiased p-2">
+  <div class="bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)] rounded-xl p-4 shadow-sm">
+    <!-- Header + Tab Bar -->
+    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-[var(--border)]">
+      <div>
+        <h2 class="text-[var(--foreground)] font-semibold text-base">Chương 01 — Trạm Điều Khiển Tương Tác SAA-C03</h2>
+        <p class="text-[var(--muted-foreground)] text-xs">Khám phá bản đồ 33 chương, mô phỏng điểm đậu 720/1000 & chẩn đoán AWS Account</p>
+      </div>
+      <div class="flex gap-1.5" id="tab-buttons">
+        <button onclick="switchTab('map')" id="btn-map" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--primary)] text-[var(--primary-foreground)] transition">🗺️ Bản đồ 7 Tầng</button>
+        <button onclick="switchTab('score')" id="btn-score" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] transition">⚖️ Mô phỏng Điểm Thi</button>
+        <button onclick="switchTab('account')" id="btn-account" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] transition">🛡️ Chẩn đoán Account</button>
+      </div>
+    </div>
+
+    <!-- TAB 1: 7-Layer Architecture Map -->
+    <div id="tab-map" class="grid grid-cols-1 md:grid-cols-12 gap-3 items-start">
+      <div class="md:col-span-5 flex flex-col gap-1.5" id="layer-list"></div>
+      <div class="md:col-span-7 bg-[var(--background)] border border-[var(--border)] rounded-lg p-3.5" id="layer-detail"></div>
+    </div>
+
+    <!-- TAB 2: SAA-C03 Compensatory Score Simulator -->
+    <div id="tab-score" class="hidden">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+        <div class="md:col-span-7 space-y-2.5" id="domain-sliders"></div>
+        <div class="md:col-span-5 bg-[var(--background)] border border-[var(--border)] rounded-lg p-3.5 flex flex-col justify-between space-y-2.5">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-[var(--muted-foreground)]">Điểm quy đổi (100–1000)</span>
+              <span id="pass-badge" class="px-2 py-0.5 rounded text-xs font-semibold"></span>
+            </div>
+            <div class="flex items-baseline gap-2 mt-1">
+              <span id="scaled-score" class="text-2xl font-bold text-[var(--foreground)]">780</span>
+              <span class="text-xs text-[var(--muted-foreground)]">/ 1000 (Chuẩn đậu: 720)</span>
+            </div>
+            <div class="w-full bg-[var(--secondary)] h-2.5 rounded-full mt-2 overflow-hidden relative">
+              <div id="score-bar" class="bg-[var(--primary)] h-2.5 rounded-full transition-all duration-200" style="width: 78%"></div>
+            </div>
+          </div>
+          <div class="text-xs text-[var(--muted-foreground)] space-y-1 border-t border-[var(--border)] pt-2">
+            <p><strong class="text-[var(--foreground)]">Số câu đúng (trên 50 câu tính điểm):</strong> <span id="correct-count">39</span>/50 câu (+ 15 câu khảo sát ẩn không tính điểm).</p>
+            <p id="score-advice" class="text-xs"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: Account Plan & Activation Troubleshooter -->
+    <div id="tab-account" class="hidden">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+        <div class="md:col-span-5 space-y-1.5" id="issue-list"></div>
+        <div class="md:col-span-7 bg-[var(--background)] border border-[var(--border)] rounded-lg p-3.5" id="issue-detail"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const layers = [
+      {
+        id: 1,
+        name: "1. Tầng Biên & DNS (Edge)",
+        chapters: "Ch.10, Ch.15",
+        services: ["Route 53", "CloudFront", "AWS Global Accelerator"],
+        painPoint: "Người dùng ở xa máy chủ bị trễ mạng (latency cao) và không biết địa chỉ IP máy chủ.",
+        role: "Phân giải tên miền (Route 53) và lưu bộ nhớ đệm (Cache) nội dung tĩnh/động tại hơn 400 trạm Edge gần người dùng nhất."
+      },
+      {
+        id: 2,
+        name: "2. Mạng riêng ảo (Amazon VPC)",
+        chapters: "Ch.27",
+        services: ["VPC", "Public/Private Subnets", "Internet Gateway", "NAT Gateway", "VPC Peering", "Transit Gateway"],
+        painPoint: "Làm sao cô lập cơ sở dữ liệu nội bộ khỏi Internet mà vẫn cho phép Web Server đón khách từ bên ngoài?",
+        role: "Xây dựng trung tâm dữ liệu ảo riêng biệt trên Cloud, chia vùng mạng công khai (Public) và vùng mạng kín (Private)."
+      },
+      {
+        id: 3,
+        name: "3. Cân bằng tải & Tính toán (Compute)",
+        chapters: "Ch.05, 06, 08, 18, 19",
+        services: ["EC2", "Auto Scaling Group (ASG)", "ALB / NLB", "ECS / EKS / Fargate", "AWS Lambda"],
+        painPoint: "Một máy chủ đơn lẻ sẽ sập khi hỏng phần cứng hoặc khi lưu lượng tăng đột biến gấp 10 lần.",
+        role: "ALB chia đều lưu lượng vào nhiều máy chủ EC2/Container/Lambda trải trên nhiều Availability Zones và tự động thêm/bớt máy chủ."
+      },
+      {
+        id: 4,
+        name: "4. Điều phối & Bất đồng bộ (Decoupling)",
+        chapters: "Ch.17, Ch.20",
+        services: ["Amazon SQS", "Amazon SNS", "Kinesis Data Streams", "Amazon EventBridge", "API Gateway"],
+        painPoint: "Nếu dịch vụ Đặt hàng gọi trực tiếp dịch vụ Xử lý Video, khi dịch vụ Video quá tải sẽ kéo sập luôn cả dịch vụ Đặt hàng.",
+        role: "Đặt hàng đợi (SQS) hoặc luồng sự kiện (SNS/Kinesis) ở giữa để tách rời (decouple) các microservices, chống mất mát dữ liệu."
+      },
+      {
+        id: 5,
+        name: "5. Lưu trữ & Cơ sở dữ liệu (Storage & DB)",
+        chapters: "Ch.07, 09, 12–14, 16, 21–22",
+        services: ["Amazon S3", "EBS & EFS", "RDS & Aurora", "DynamoDB", "ElastiCache (Redis/Memcached)"],
+        painPoint: "Máy chủ Compute có thể bị xóa bất cứ lúc nào (stateless); dữ liệu cần nơi lưu trữ bền vững 99.999999999% và truy xuất cực nhanh.",
+        role: "Lưu file/object trên S3, ổ cứng gắn máy ảo trên EBS/EFS, dữ liệu có cấu trúc trên RDS/Aurora và NoSQL/Cache tốc độ mili-giây trên DynamoDB/ElastiCache."
+      },
+      {
+        id: 6,
+        name: "6. Bảo mật, Định danh & Mã hóa (Security)",
+        chapters: "Ch.03, 04, 14, 25, 26",
+        services: ["IAM & STS", "AWS Organizations (SCP)", "AWS KMS", "WAF & Shield", "Security Group & NACL"],
+        painPoint: "Ai được phép truy cập tài nguyên nào? Làm sao bảo vệ dữ liệu nhạy cảm và chống tấn công DDoS/SQL Injection?",
+        role: "Áp dụng đặc quyền tối thiểu (Least Privilege) với IAM Role/Policy, mã hóa dữ liệu bằng KMS và chắn tường lửa ứng dụng bằng WAF/Shield."
+      },
+      {
+        id: 7,
+        name: "7. Giám sát, Kiểm toán & Phục hồi (Ops & DR)",
+        chapters: "Ch.24, 28, 30, 31",
+        services: ["CloudWatch", "CloudTrail", "AWS Config", "CloudFormation", "AWS Backup & Disaster Recovery"],
+        painPoint: "Khi hệ thống chậm hoặc có ai đó xóa nhầm tài nguyên, làm sao phát hiện tự động và khôi phục toàn bộ hạ tầng trong vài phút?",
+        role: "Theo dõi metrics/logs (CloudWatch), truy vết mọi lệnh gọi API (CloudTrail), kiểm tra tuân thủ (Config) và sao lưu/chuyển đổi dự phòng (DR)."
+      }
+    ];
+
+    const domains = [
+      { id: "d1", name: "Domain 1: Bảo mật (Secure)", weight: 0.30, pct: 80, ch: "Ch.04, 14, 25, 26, 27" },
+      { id: "d2", name: "Domain 2: Chịu lỗi (Resilient)", weight: 0.26, pct: 75, ch: "Ch.08, 10, 17, 20, 28" },
+      { id: "d3", name: "Domain 3: Hiệu năng cao (High-Perf)", weight: 0.24, pct: 75, ch: "Ch.05–07, 09, 12–16, 18–22" },
+      { id: "d4", name: "Domain 4: Tối ưu chi phí (Cost)", weight: 0.20, pct: 70, ch: "Ch.05, 09, 13, 30" }
+    ];
+
+    const accountCases = [
+      {
+        title: "Free Plan vs. Paid Plan khác nhau gì?",
+        tag: "Chi phí & Thẻ",
+        summary: "Free Plan cấp $100–$200 AWS Credits và TỰ ĐỘNG ĐÓNG tài khoản khi hết credit, đảm bảo 0% rủi ro bị trừ lố tiền vào thẻ.",
+        steps: [
+          "Cả Free Plan và Paid Plan đều yêu cầu nhập thẻ Visa/MasterCard để xác minh chống gian lận (tạm giữ $1 rồi hoàn lại ngay).",
+          "Với Free Plan: bạn không bị thu phí trừ khi chủ động bấm nâng cấp lên Paid Plan.",
+          "Với Paid Plan: dùng cho hệ thống Production; nếu dùng vượt số credit được tặng, AWS sẽ trừ tiền trực tiếp vào thẻ."
+        ]
+      },
+      {
+        title: "Lỗi kẹt thông báo 'Complete Sign Up' dù đã đăng ký xong",
+        tag: "Troubleshooting",
+        summary: "Tài khoản đang trong quá trình xác minh hoặc bị thiếu 1 trong 3 bước bắt buộc.",
+        steps: [
+          "Kiểm tra 1: Đảm bảo đã hoàn tất đủ 3 bước: (1) Payment Method, (2) Verify Phone Number (OTP), (3) Chọn AWS Support Plan (Basic - Free).",
+          "Kiểm tra 2: Kiểm tra email xem đã nhận được thư 'Thank you for creating an Amazon Web Services account' chưa (thường mất vài phút, tối đa 24h).",
+          "Kiểm tra 3: Đăng xuất (Sign out) hoàn toàn rồi đăng nhập lại bằng tuỳ chọn 'Root user email'."
+        ]
+      },
+      {
+        title: "Thẻ Visa/MasterCard bị từ chối hoặc quá 24h chưa kích hoạt",
+        tag: "Thanh toán & Support",
+        summary: "Ngân hàng phát hành thẻ đôi khi chặn giao dịch xác thực $1 tự động từ AWS.",
+        steps: [
+          "Vào Billing and Cost Management -> Payment Methods để kiểm tra xem thẻ có báo lỗi đỏ không.",
+          "Mở khóa thanh toán trực tuyến quốc tế trên app ngân hàng hoặc liên hệ ngân hàng cho phép giao dịch xác thực $1 từ AWS.",
+          "Nếu quá 24h vẫn chưa kích hoạt: Bấm Support -> Support Center ở góc phải trên cùng Console để mở ticket (không ghi số thẻ đầy đủ vào nội dung ticket)."
+        ]
+      }
+    ];
+
+    let activeLayer = 0;
+    let activeIssue = 0;
+
+    function renderLayers() {
+      const listEl = document.getElementById("layer-list");
+      listEl.innerHTML = layers.map((l, idx) => `
+        <button onclick="selectLayer(${idx})" class="w-full text-left px-3 py-2 rounded-lg text-xs border transition flex items-center justify-between ${
+          idx === activeLayer
+            ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] font-semibold"
+            : "bg-[var(--background)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--secondary)]"
+        }">
+          <span>${l.name}</span>
+          <span class="opacity-80 text-xs">${l.chapters}</span>
+        </button>
+      `).join("");
+
+      const cur = layers[activeLayer];
+      document.getElementById("layer-detail").innerHTML = `
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between border-b border-[var(--border)] pb-2">
+            <h3 class="font-semibold text-sm text-[var(--foreground)]">${cur.name}</h3>
+            <span class="px-2 py-0.5 rounded bg-[var(--secondary)] text-[var(--secondary-foreground)] text-xs font-medium">${cur.chapters}</span>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-[var(--muted-foreground)]">🔥 Nỗi đau kiến trúc cần giải quyết (Pain Point):</p>
+            <p class="text-xs text-[var(--foreground)] mt-0.5">${cur.painPoint}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-[var(--muted-foreground)]">⚙️ Vai trò trong hệ thống:</p>
+            <p class="text-xs text-[var(--foreground)] mt-0.5">${cur.role}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-[var(--muted-foreground)] mb-1">🧰 Dịch vụ AWS đại diện sẽ học:</p>
+            <div class="flex flex-wrap gap-1.5">
+              ${cur.services.map(s => `<span class="px-2 py-0.5 rounded-md bg-[var(--secondary)] text-[var(--secondary-foreground)] text-xs font-medium">${s}</span>`).join("")}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function selectLayer(idx) {
+      activeLayer = idx;
+      renderLayers();
+    }
+
+    function renderSliders() {
+      const container = document.getElementById("domain-sliders");
+      container.innerHTML = domains.map((d, idx) => `
+        <div class="bg-[var(--background)] border border-[var(--border)] rounded-lg p-2.5">
+          <div class="flex justify-between items-center text-xs mb-1">
+            <span class="font-medium text-[var(--foreground)]">${d.name} <span class="text-[var(--muted-foreground)]">(${Math.round(d.weight*100)}%)</span></span>
+            <span class="font-semibold text-[var(--foreground)]" id="lbl-${d.id}">${d.pct}% đúng</span>
+          </div>
+          <input type="range" min="0" max="100" step="5" value="${d.pct}" oninput="updateDomain(${idx}, this.value)" class="w-full accent-[var(--primary)] cursor-pointer h-1.5" />
+        </div>
+      `).join("");
+      updateScoreCalc();
+    }
+
+    function updateDomain(idx, val) {
+      domains[idx].pct = parseInt(val, 10);
+      document.getElementById(`lbl-${domains[idx].id}`).textContent = `${val}% đúng`;
+      updateScoreCalc();
+    }
+
+    function updateScoreCalc() {
+      const weightedPct = domains.reduce((acc, d) => acc + (d.pct * d.weight), 0);
+      const scaled = Math.round(100 + (weightedPct / 100) * 900);
+      const correct = Math.round((weightedPct / 100) * 50);
+      const passed = scaled >= 720;
+
+      document.getElementById("scaled-score").textContent = scaled;
+      document.getElementById("correct-count").textContent = correct;
+      document.getElementById("score-bar").style.width = `${Math.min(100, Math.max(5, (scaled / 1000) * 100))}%`;
+
+      const badge = document.getElementById("pass-badge");
+      const advice = document.getElementById("score-advice");
+      if (passed) {
+        badge.textContent = "ĐẬU (PASS ≥ 720)";
+        badge.className = "px-2 py-0.5 rounded text-xs font-semibold bg-[var(--primary)] text-[var(--primary-foreground)]";
+        advice.textContent = "Nhờ cơ chế chấm bù trừ (Compensatory Scoring), dù 1 Domain thấp dưới 70% nhưng nếu Domain 1 (30%) & Domain 2 (26%) cao, bạn vẫn đậu!";
+      } else {
+        badge.textContent = "CHƯA ĐẠT (< 720)";
+        badge.className = "px-2 py-0.5 rounded text-xs font-semibold bg-[var(--secondary)] text-[var(--secondary-foreground)]";
+        advice.textContent = "Cần đạt trung bình khoảng ≥ 69% số câu tính điểm (~35/50 câu). Hãy ưu tiên kéo điểm Domain 1 (Bảo mật - 30%) và Domain 2 (Chịu lỗi - 26%).";
+      }
+    }
+
+    function renderIssues() {
+      const listEl = document.getElementById("issue-list");
+      listEl.innerHTML = accountCases.map((c, idx) => `
+        <button onclick="selectIssue(${idx})" class="w-full text-left px-3 py-2.5 rounded-lg text-xs border transition ${
+          idx === activeIssue
+            ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] font-semibold"
+            : "bg-[var(--background)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--secondary)]"
+        }">
+          <div class="flex items-center justify-between mb-0.5">
+            <span class="opacity-80 text-xs">${c.tag}</span>
+          </div>
+          <div>${c.title}</div>
+        </button>
+      `).join("");
+
+      const cur = accountCases[activeIssue];
+      document.getElementById("issue-detail").innerHTML = `
+        <div class="space-y-2.5">
+          <div class="border-b border-[var(--border)] pb-2">
+            <span class="px-2 py-0.5 rounded bg-[var(--secondary)] text-[var(--secondary-foreground)] text-xs font-medium">${cur.tag}</span>
+            <h3 class="font-semibold text-sm text-[var(--foreground)] mt-1">${cur.title}</h3>
+          </div>
+          <p class="text-xs font-medium text-[var(--foreground)]">${cur.summary}</p>
+          <ul class="space-y-1.5 text-xs text-[var(--muted-foreground)] list-disc pl-4">
+            ${cur.steps.map(s => `<li>${s}</li>`).join("")}
+          </ul>
+        </div>
+      `;
+    }
+
+    function selectIssue(idx) {
+      activeIssue = idx;
+      renderIssues();
+    }
+
+    function switchTab(tab) {
+      ["map", "score", "account"].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.toggle("hidden", t !== tab);
+        const btn = document.getElementById(`btn-${t}`);
+        if (t === tab) {
+          btn.className = "px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--primary)] text-[var(--primary-foreground)] transition";
+        } else {
+          btn.className = "px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] transition";
+        }
+      });
+    }
+
+    renderLayers();
+    renderSliders();
+    renderIssues();
+  </script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notion Interactive Widgets Hub — manhtruong03</title>
+  <link rel="stylesheet" href="./shared/notion-theme.css" />
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <script src="./shared/notion-widget.js"></script>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] min-h-screen antialiased p-6">
+  <div class="max-w-5xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 shadow-sm flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--primary)] text-[var(--primary-foreground)]">Notion /embed Hub</span>
+          <span class="text-xs text-[var(--muted-foreground)]">manhtruong03.github.io/notion-widgets</span>
+        </div>
+        <h1 class="text-xl font-bold mt-1.5">Kho Widget Tương Tác Tập Trung cho Notion</h1>
+        <p class="text-xs text-[var(--muted-foreground)] mt-1">
+          Dùng chung cho mọi không gian Notion (Learning, Engineering, Productivity, Utilities). Bấm <strong>Copy Embed URL</strong> rồi dán vào lệnh <code>/embed</code> trên Notion.
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <input
+          id="search-input"
+          type="text"
+          placeholder="Tìm theo tên, tag, khóa học..."
+          oninput="renderCatalog()"
+          class="px-3 py-2 rounded-lg text-xs bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] w-64 focus:outline-none focus:border-[var(--primary)]"
+        />
+      </div>
+    </div>
+
+    <!-- Category Filter Pills -->
+    <div class="flex flex-wrap gap-2" id="category-pills"></div>
+
+    <!-- Widget Grid -->
+    <div class="grid grid-cols-1 gap-4" id="widget-grid"></div>
+  </div>
+
+  <script>
+    let registry = { categories: [], widgets: [] };
+    let activeCategory = "all";
+
+    async function loadRegistry() {
+      try {
+        const res = await fetch("./registry.json?t=" + Date.now());
+        registry = await res.json();
+      } catch (e) {
+        console.error("Failed to load registry.json", e);
+      }
+      renderCategoryPills();
+      renderCatalog();
+    }
+
+    function renderCategoryPills() {
+      const container = document.getElementById("category-pills");
+      const allCats = [{ id: "all", name: "Tất cả (" + registry.widgets.length + ")" }, ...registry.categories];
+      container.innerHTML = allCats.map(c => `
+        <button
+          onclick="setCategory('${c.id}')"
+          class="px-3 py-1.5 rounded-lg text-xs font-medium border transition ${
+            activeCategory === c.id
+              ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]"
+              : "bg-[var(--card)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--secondary)]"
+          }"
+        >
+          ${c.name}
+        </button>
+      `).join("");
+    }
+
+    function setCategory(catId) {
+      activeCategory = catId;
+      renderCategoryPills();
+      renderCatalog();
+    }
+
+    function copyUrl(url, btnId) {
+      navigator.clipboard.writeText(url);
+      const btn = document.getElementById(btnId);
+      const old = btn.textContent;
+      btn.textContent = "✅ Đã copy link /embed!";
+      setTimeout(() => (btn.textContent = old), 1800);
+    }
+
+    function renderCatalog() {
+      const q = (document.getElementById("search-input").value || "").toLowerCase().trim();
+      const filtered = registry.widgets.filter(w => {
+        const matchCat = activeCategory === "all" || w.category === activeCategory;
+        const matchQ =
+          !q ||
+          w.title.toLowerCase().includes(q) ||
+          (w.description || "").toLowerCase().includes(q) ||
+          (w.group || "").toLowerCase().includes(q) ||
+          (w.tags || []).some(t => t.toLowerCase().includes(q));
+        return matchCat && matchQ;
+      });
+
+      const grid = document.getElementById("widget-grid");
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-8 text-center text-xs text-[var(--muted-foreground)]">Không tìm thấy widget nào khớp bộ lọc.</div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map((w, idx) => `
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded bg-[var(--secondary)] text-[var(--secondary-foreground)] text-xs font-medium">${w.category}</span>
+                ${w.group ? `<span class="px-2 py-0.5 rounded bg-[var(--secondary)] text-[var(--secondary-foreground)] text-xs">${w.group}</span>` : ""}
+                <span class="text-xs text-[var(--muted-foreground)]">Cập nhật: ${w.updated_at || ""}</span>
+              </div>
+              <h2 class="text-base font-semibold">${w.title}</h2>
+              <p class="text-xs text-[var(--muted-foreground)]">${w.description}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                id="copy-btn-${idx}"
+                onclick="copyUrl('${w.embed_url}', 'copy-btn-${idx}')"
+                class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition"
+              >
+                📋 Copy Notion Embed URL
+              </button>
+              <a
+                href="./${w.path}"
+                target="_blank"
+                class="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] border border-[var(--border)] hover:opacity-90 transition"
+              >
+                ↗ Mở riêng
+              </a>
+            </div>
+          </div>
+          <div class="border border-[var(--border)] rounded-lg overflow-hidden bg-[var(--background)]">
+            <iframe src="./${w.path}" class="w-full border-0" style="height: ${w.recommended_height || 400}px"></iframe>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    loadRegistry();
+  </script>
+</body>
+</html>
