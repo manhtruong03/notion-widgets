@@ -64,13 +64,13 @@
                         "group":  "aws-saa-c03",
                         "path":  "widgets/learning/aws-saa-c03/01-compensatory-scoring.html",
                         "embed_url":  "https://manhtruong03.github.io/notion-widgets/widgets/learning/aws-saa-c03/01-compensatory-scoring.html",
-                        "description":  "Explorable Explanation thử nghiệm trọng số 4 Domains (30% - 26% - 24% - 20%) và ngưỡng đậu 720/1000",
+                        "description":  "Explorable Explanation thử nghiệm trọng số 4 Domains (30% - 26% - 24% - 20%) và ngưỡng đậu 720/1000 (Ultra-compact \u003c= 215px)",
                         "tags":  [
                                      "aws-saa-c03",
                                      "section-01",
                                      "compensatory-scoring"
                                  ],
-                        "recommended_height":  310,
+                        "recommended_height":  215,
                         "updated_at":  "2026-11-01"
                     },
                     {

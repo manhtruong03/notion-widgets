@@ -3,15 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mô phỏng Khám phá: Quy tắc Chấm điểm Bù trừ (Compensatory Scoring) SAA-C03</title>
-  <link rel="stylesheet" href="../../../shared/notion-theme.css" />
+  <title>Mô phỏng Chấm điểm Bù trừ (Compensatory Scoring) SAA-C03</title>
   <style>
     :root {
       --bg: #ffffff;
       --surface: #f8fafc;
       --border: #e2e8f0;
       --text: #0f172a;
-      --muted: #475569;
+      --muted: #64748b;
       --accent: #2563eb;
       --pass: #059669;
       --pass-bg: #ecfdf5;
@@ -33,43 +32,42 @@
       }
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
+    html, body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
-      padding: 12px;
-      line-height: 1.45;
+      overflow: hidden;
+      height: 100%;
     }
     .sim-card {
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: 8px;
       background: var(--surface);
-      padding: 14px;
+      padding: 10px 12px;
+      max-height: 215px;
     }
     .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
+      gap: 6px;
+      margin-bottom: 8px;
     }
     .eyebrow {
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
       color: var(--accent);
+      white-space: nowrap;
     }
     .presets {
       display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
+      gap: 4px;
     }
     .preset-btn {
-      font-size: 11.5px;
-      padding: 4px 9px;
-      border-radius: 6px;
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 5px;
       border: 1px solid var(--border);
       background: var(--bg);
       color: var(--text);
@@ -82,58 +80,64 @@
     }
     .grid {
       display: grid;
-      grid-template-columns: 1.35fr 1fr;
-      gap: 14px;
+      grid-template-columns: 1.45fr 1fr;
+      gap: 10px;
       align-items: stretch;
-    }
-    @media (max-width: 640px) {
-      .grid { grid-template-columns: 1fr; }
     }
     .sliders-box {
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 12px;
+      border-radius: 6px;
+      padding: 8px 10px;
       display: flex;
       flex-direction: column;
-      gap: 9px;
+      justify-content: space-between;
+      gap: 6px;
     }
     .domain-row {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
+      display: grid;
+      grid-template-columns: 165px 1fr 38px;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
     }
-    .domain-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
+    .domain-name {
       font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .domain-weight {
       color: var(--muted);
       font-weight: 500;
+      font-size: 10.5px;
+    }
+    .domain-val {
+      text-align: right;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
     }
     input[type="range"] {
       width: 100%;
+      height: 5px;
       accent-color: var(--accent);
       cursor: pointer;
     }
     .result-box {
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
+      border-radius: 6px;
+      padding: 8px 10px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
     .score-banner {
-      padding: 10px 12px;
-      border-radius: 8px;
+      padding: 6px 10px;
+      border-radius: 6px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
     }
     .score-banner.pass {
       background: var(--pass-bg);
@@ -146,104 +150,67 @@
       color: var(--fail);
     }
     .score-num {
-      font-size: 24px;
+      font-size: 20px;
       font-weight: 800;
+      line-height: 1;
     }
     .score-status {
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-    .meter-track {
-      height: 8px;
-      background: var(--border);
-      border-radius: 999px;
-      position: relative;
-      overflow: hidden;
-      margin-bottom: 10px;
-    }
-    .meter-fill {
-      height: 100%;
-      transition: width 0.2s ease;
-    }
-    .threshold-note {
       font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
+      font-weight: 700;
     }
     .insight {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text);
-      border-top: 1px dashed var(--border);
-      padding-top: 8px;
+      line-height: 1.35;
+      margin-top: 6px;
     }
   </style>
+  <link rel="stylesheet" href="../../../shared/notion-theme.css" />
+  <script src="../../../shared/notion-widget.js"></script>
 </head>
 <body>
   <div class="sim-card">
     <div class="top-bar">
-      <span class="eyebrow">🎛️ Mô phỏng Chấm điểm Bù trừ (Thử kéo thanh trượt hoặc chọn kịch bản giả định)</span>
+      <span class="eyebrow">🎛️ Bàn thử nghiệm điểm bù trừ (Kéo thanh trượt để thử giả định)</span>
       <div class="presets">
-        <button class="preset-btn" type="button" onclick="applyPreset(85, 82, 75, 45)">Giỏi D1 & D2, hụt D4 (45%)</button>
-        <button class="preset-btn" type="button" onclick="applyPreset(50, 58, 85, 90)">Chủ quan Security (50%)</button>
-        <button class="preset-btn" type="button" onclick="applyPreset(75, 75, 75, 75)">Đồng đều 75%</button>
+        <button class="preset-btn" type="button" onclick="applyPreset(85, 82, 75, 45)">Hụt D4 (45%) vẫn Đậu</button>
+        <button class="preset-btn" type="button" onclick="applyPreset(50, 58, 85, 90)">Hụt D1 & D2 → Trượt</button>
+        <button class="preset-btn" type="button" onclick="applyPreset(75, 75, 75, 75)">Đều 75%</button>
       </div>
     </div>
 
     <div class="grid">
       <div class="sliders-box">
         <div class="domain-row">
-          <div class="domain-label">
-            <span>Domain 1: Secure Architectures <span class="domain-weight">(Trọng số 30% • ~15 câu)</span></span>
-            <span id="val1">82%</span>
-          </div>
-          <input type="range" id="d1" min="0" max="100" value="82" oninput="updateScore()" />
+          <span class="domain-name">D1: Security <span class="domain-weight">(30%)</span></span>
+          <input type="range" id="d1" min="0" max="100" value="85" oninput="updateScore()" />
+          <span class="domain-val" id="val1">85%</span>
         </div>
         <div class="domain-row">
-          <div class="domain-label">
-            <span>Domain 2: Resilient Architectures <span class="domain-weight">(Trọng số 26% • ~13 câu)</span></span>
-            <span id="val2">80%</span>
-          </div>
-          <input type="range" id="d2" min="0" max="100" value="80" oninput="updateScore()" />
+          <span class="domain-name">D2: Resilient <span class="domain-weight">(26%)</span></span>
+          <input type="range" id="d2" min="0" max="100" value="82" oninput="updateScore()" />
+          <span class="domain-val" id="val2">82%</span>
         </div>
         <div class="domain-row">
-          <div class="domain-label">
-            <span>Domain 3: High-Performing <span class="domain-weight">(Trọng số 24% • ~12 câu)</span></span>
-            <span id="val3">75%</span>
-          </div>
+          <span class="domain-name">D3: High-Perf <span class="domain-weight">(24%)</span></span>
           <input type="range" id="d3" min="0" max="100" value="75" oninput="updateScore()" />
+          <span class="domain-val" id="val3">75%</span>
         </div>
         <div class="domain-row">
-          <div class="domain-label">
-            <span>Domain 4: Cost-Optimized <span class="domain-weight">(Trọng số 20% • ~10 câu)</span></span>
-            <span id="val4">50%</span>
-          </div>
-          <input type="range" id="d4" min="0" max="100" value="50" oninput="updateScore()" />
+          <span class="domain-name">D4: Cost-Opt <span class="domain-weight">(20%)</span></span>
+          <input type="range" id="d4" min="0" max="100" value="45" oninput="updateScore()" />
+          <span class="domain-val" id="val4">45%</span>
         </div>
       </div>
 
       <div class="result-box">
-        <div>
-          <div class="score-banner pass" id="banner">
-            <div>
-              <div class="score-status" id="statusText">ĐẠT (PASS ≥ 720)</div>
-              <div style="font-size:11px; opacity:0.85;" id="correctCount">~37 / 50 câu tính điểm (+15 câu khảo sát ẩn)</div>
-            </div>
-            <div class="score-num" id="scaledScore">759</div>
+        <div class="score-banner pass" id="banner">
+          <div>
+            <div class="score-status" id="statusText">ĐẠT (PASS ≥ 720)</div>
+            <div style="font-size:10px; opacity:0.85;" id="correctCount">~37 / 50 câu tính điểm</div>
           </div>
-
-          <div class="threshold-note">
-            <span>Thang điểm: 100</span>
-            <span>Mốc đậu: 720</span>
-            <span>1000</span>
-          </div>
-          <div class="meter-track">
-            <div class="meter-fill" id="meterFill" style="width: 75.9%; background: var(--pass);"></div>
-          </div>
+          <div class="score-num" id="scaledScore">764</div>
         </div>
-
         <div class="insight" id="insightText"></div>
       </div>
     </div>
@@ -277,22 +244,16 @@
       const banner = document.getElementById("banner");
       banner.className = "score-banner " + (passed ? "pass" : "fail");
       document.getElementById("scaledScore").textContent = scaled;
-      document.getElementById("statusText").textContent = passed ? "ĐẠT (PASS ≥ 720)" : "CHƯA ĐẠT (< 720)";
-      document.getElementById("correctCount").textContent = `~${approxCorrect} / 50 câu tính điểm (+15 câu unscored)`;
-
-      const fill = document.getElementById("meterFill");
-      fill.style.width = ((scaled - 100) / 900 * 100).toFixed(1) + "%";
-      fill.style.background = passed ? "var(--pass)" : "var(--fail)";
+      document.getElementById("statusText").textContent = passed ? "ĐẠT (≥ 720)" : "CHƯA ĐẠT (< 720)";
+      document.getElementById("correctCount").textContent = `~${approxCorrect}/50 câu (+15 unscored)`;
 
       const insight = document.getElementById("insightText");
       if (passed && (p1 < 65 || p2 < 65 || p3 < 65 || p4 < 65)) {
-        insight.innerHTML = `💡 <b>Bản chất Compensatory Scoring:</b> Dù có miền dưới 65% (như Domain 4 chỉ đạt ${p4}%), bạn <b>vẫn ĐẬU (${scaled}/1000)</b> nhờ điểm cao ở các miền trọng số lớn bù sang.`;
+        insight.innerHTML = `💡 Dù có miền < 65% (D4 = ${p4}%), vẫn <b>ĐẬU (${scaled}/1000)</b> nhờ D1 & D2 trọng số lớn bù sang.`;
       } else if (!passed && (p3 >= 80 || p4 >= 80)) {
-        insight.innerHTML = `⚠️ <b>Cảnh báo chiến thuật:</b> Dù làm tốt phần Hiệu năng/Chi phí, nhưng để mất điểm ở <b>Security (30%) & Resilience (26%)</b> khiến tổng điểm tụt xuống <b>${scaled}/1000</b>.`;
-      } else if (passed) {
-        insight.innerHTML = `✅ <b>An toàn vượt chuẩn:</b> Riêng 2 miền <b>Security + Resilience</b> đã đóng góp <b>${((p1*0.3 + p2*0.26)).toFixed(1)}%</b> trên tổng <b>${weightedPct.toFixed(1)}%</b> toàn bài.`;
+        insight.innerHTML = `⚠️ Dù D3/D4 cao nhưng hụt <b>D1 (30%) & D2 (26%)</b> khiến tổng điểm tụt còn <b>${scaled}/1000</b>.`;
       } else {
-        insight.innerHTML = `🎯 Cần thêm khoảng <b>${Math.max(1, Math.ceil(((620/900)*100 - weightedPct)/2))} câu đúng</b> ở nhóm Security (Ch.04, 25–27) hoặc Resilience (Ch.08, 10, 17) để chạm mốc 720.`;
+        insight.innerHTML = `🎯 D1 + D2 đóng góp <b>${(p1*0.3 + p2*0.26).toFixed(1)}%</b> / tổng <b>${weightedPct.toFixed(1)}%</b> toàn bài (Mốc đậu: 720).`;
       }
     }
 
