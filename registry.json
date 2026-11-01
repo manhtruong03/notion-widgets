@@ -58,6 +58,22 @@
                                  ],
                         "recommended_height":  420,
                         "updated_at":  "2026-11-01"
+                    },
+                    {
+                        "id":  "aws-saa-c03-01-spaghetti-untangler",
+                        "title":  "Sơ đồ Khám phá 7 Tầng Kiến trúc AWS (Gỡ rối Tô mì Ý)",
+                        "category":  "learning",
+                        "group":  "aws-saa-c03",
+                        "path":  "widgets/learning/aws-saa-c03/01-spaghetti-untangler.html",
+                        "embed_url":  "https://manhtruong03.github.io/notion-widgets/widgets/learning/aws-saa-c03/01-spaghetti-untangler.html",
+                        "description":  "Mô hình khám phá trực tiếp luồng Request qua 7 tầng kiến trúc AWS và ánh xạ tới 33 chương SAA-C03",
+                        "tags":  [
+                                     "aws-saa-c03",
+                                     "section-01",
+                                     "architecture-explorer"
+                                 ],
+                        "recommended_height":  300,
+                        "updated_at":  "2026-11-01"
                     }
                 ]
 }

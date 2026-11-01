@@ -1,0 +1,311 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mô hình Khám phá: Gỡ rối "Tô mì Ý AWS" theo 7 Tầng Kiến trúc</title>
+  <link rel="stylesheet" href="../../../shared/notion-theme.css" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --surface: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #475569;
+      --accent: #2563eb;
+      --accent-soft: #eff6ff;
+      --amber: #d97706;
+      --amber-soft: #fffbeb;
+      --emerald: #059669;
+      --emerald-soft: #ecfdf5;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #191919;
+        --surface: #202020;
+        --border: #2f2f2f;
+        --text: #f1f5f9;
+        --muted: #94a3b8;
+        --accent: #60a5fa;
+        --accent-soft: rgba(59, 130, 246, 0.14);
+        --amber: #fbbf24;
+        --amber-soft: rgba(245, 158, 11, 0.14);
+        --emerald: #34d399;
+        --emerald-soft: rgba(16, 185, 129, 0.14);
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 12px;
+      line-height: 1.45;
+    }
+    .explorable-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      padding: 14px;
+    }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+    }
+    .prompt-hint {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .flow-bar {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 680px) {
+      .flow-bar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    .layer-node {
+      border: 1px solid var(--border);
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 8px 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+    .layer-node:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .layer-node.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+    .layer-step {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      display: block;
+    }
+    .layer-name {
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 2px;
+      display: block;
+    }
+    .layer-ch {
+      font-size: 10px;
+      color: var(--accent);
+      margin-top: 3px;
+      display: inline-block;
+      font-weight: 600;
+    }
+    .inspector {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+    @media (max-width: 640px) {
+      .inspector { grid-template-columns: 1fr; }
+    }
+    .ins-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ins-problem {
+      font-size: 12.5px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .service-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .pill {
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(37, 99, 235, 0.2);
+    }
+    .meta-box {
+      border-left: 3px solid var(--amber);
+      background: var(--amber-soft);
+      padding: 8px 10px;
+      border-radius: 0 6px 6px 0;
+      font-size: 12px;
+    }
+    .meta-box strong {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--amber);
+    }
+    .chapter-badge {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--emerald);
+      background: var(--emerald-soft);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="explorable-card">
+    <div class="header-row">
+      <span class="eyebrow">🔍 Sơ đồ khám phá 7 tầng kiến trúc (Bấm từng tầng theo luồng Request)</span>
+      <span class="prompt-hint">Thay thế cho việc học vẹt 30+ icon rời rạc trong "Tô mì Ý AWS"</span>
+    </div>
+
+    <div class="flow-bar" id="flowBar"></div>
+
+    <div class="inspector" id="inspector"></div>
+  </div>
+
+  <script>
+    const LAYERS = [
+      {
+        step: "Tầng 1 • Biên (Edge)",
+        short: "DNS & CDN",
+        chapters: "Ch.03, 10, 15",
+        title: "1. Tầng Biên & Phân phối toàn cầu (Edge & DNS)",
+        problem: "Đón request đầu tiên từ người dùng cuối: phân giải tên miền sang IP gần nhất và trả ngay dữ liệu tĩnh đã cache tại 400+ PoPs mà không cần đi về máy chủ gốc.",
+        services: ["Amazon Route 53 (DNS)", "Amazon CloudFront (CDN)", "AWS Global Accelerator", "AWS Shield / WAF"],
+        interaction: "Nhận truy vấn từ User → Chuyển tiếp lưu lượng tĩnh về S3 hoặc lưu lượng động vào Load Balancer bên trong VPC.",
+        chapterMap: "Học tại: Ch.03 (PoPs), Ch.10 (Route 53), Ch.15 (CloudFront & Global Accelerator)"
+      },
+      {
+        step: "Tầng 2 • Mạng (VPC)",
+        short: "Amazon VPC",
+        chapters: "Ch.27",
+        title: "2. Tầng Mạng riêng ảo & Cô lập biên giới (Networking)",
+        problem: "Tạo trung tâm dữ liệu ảo cô lập trên đám mây: chia Public Subnet (đón kết nối ngoài) và Private Subnet (giấu máy chủ ứng dụng & DB khỏi Internet).",
+        services: ["Amazon VPC", "Public / Private Subnets", "Internet Gateway & NAT Gateway", "Security Groups & NACLs", "VPC Endpoints / PrivateLink"],
+        interaction: "Bao bọc toàn bộ Tầng 3, 4, 5 bên trong biên giới kiểm soát lưu lượng chặt chẽ.",
+        chapterMap: "Học chuyên sâu tại: Ch.27 (VPC Networking) & Ch.05 (Security Groups)"
+      },
+      {
+        step: "Tầng 3 • Điều tải",
+        short: "Load Balancing",
+        chapters: "Ch.08",
+        title: "3. Tầng Cân bằng tải & Tự động co giãn (ELB & ASG)",
+        problem: "Không để bất kỳ máy chủ đơn lẻ nào trở thành điểm chết (Single Point of Failure): chia đều lưu lượng sang nhiều AZ và tự động thêm/bớt máy chủ theo tải.",
+        services: ["Application Load Balancer (ALB)", "Network Load Balancer (NLB)", "Gateway Load Balancer (GWLB)", "Auto Scaling Group (ASG)"],
+        interaction: "Nhận request từ Route 53 / CloudFront → Kiểm tra Health Check → Phân phối xuống dàn Compute khỏe mạnh.",
+        chapterMap: "Học tại: Ch.08 (High Availability & Scalability: ELB & ASG)"
+      },
+      {
+        step: "Tầng 4 • Tính toán",
+        short: "Compute",
+        chapters: "Ch.05, 06, 18, 19",
+        title: "4. Tầng Xử lý Logic Ứng dụng (Compute: VM, Containers, Serverless)",
+        problem: "Thực thi code nghiệp vụ: từ máy ảo tự quản lý (EC2), cụm Container (ECS/EKS) cho tới hàm Serverless chạy theo sự kiện (Lambda).",
+        services: ["Amazon EC2 (IaaS)", "AWS Elastic Beanstalk (PaaS)", "Amazon ECS / EKS / Fargate", "AWS Lambda (Serverless)", "AWS Batch"],
+        interaction: "Xử lý request từ Load Balancer/API Gateway → Đọc/ghi dữ liệu xuống Tầng Lưu trữ & Database hoặc đẩy tác vụ vào Hàng đợi.",
+        chapterMap: "Học tại: Ch.05–06 (EC2), Ch.18 (Containers), Ch.19 (Serverless Lambda)"
+      },
+      {
+        step: "Tầng 5 • Điều phối",
+        short: "Decoupling",
+        chapters: "Ch.17, 20, 23",
+        title: "5. Tầng Tách rời & Xử lý Bất đồng bộ (Decoupling & Messaging)",
+        problem: "Ngăn hiệu ứng domino: khi lượng đơn hàng tăng đột biến gấp 100 lần, hàng đợi giữ lại các gói tin để tầng Compute xử lý dần mà không làm sập Database.",
+        services: ["Amazon SQS (Queue)", "Amazon SNS (Pub/Sub)", "Amazon Kinesis (Real-time Stream)", "Amazon EventBridge", "AWS Step Functions"],
+        interaction: "Đứng giữa các cụm Microservices/Compute để truyền thông điệp bất đồng bộ, giảm phụ thuộc trực tiếp.",
+        chapterMap: "Học tại: Ch.17 (SQS, SNS, Kinesis), Ch.20 (API Gateway), Ch.23 (Data & Analytics)"
+      },
+      {
+        step: "Tầng 6 • Dữ liệu",
+        short: "Storage & DB",
+        chapters: "Ch.07, 09, 12-16, 21",
+        title: "6. Tầng Lưu trữ & Cơ sở dữ liệu (Storage, Databases & Caching)",
+        problem: "Lưu trữ bền vững theo đúng cấu trúc truy vấn: ổ cứng gắn máy ảo, kho Object vô hạn, SQL có giao dịch ACID, NoSQL độ trễ mili-giây và bộ nhớ đệm RAM.",
+        services: ["EBS & EFS / FSx (Block/File)", "Amazon S3 & Glacier (Object)", "Amazon RDS & Aurora (SQL)", "Amazon DynamoDB (NoSQL)", "Amazon ElastiCache (Redis/Memcached)"],
+        interaction: "Cung cấp dữ liệu bền vững (Multi-AZ / Read Replicas) cho Tầng Tính toán.",
+        chapterMap: "Học tại: Ch.07 (EBS/EFS), Ch.09 (RDS/Aurora/ElastiCache), Ch.12–14 (S3), Ch.21 (DynamoDB)"
+      },
+      {
+        step: "Tầng 7 • Quản trị",
+        short: "Security & Ops",
+        chapters: "Ch.04, 24-26, 28",
+        title: "7. Tầng Bảo mật, Giám sát & Phục hồi thảm họa (Cross-Cutting)",
+        problem: "Ai được phép gọi API nào? Khóa mã hóa nằm ở đâu? Hệ thống có bất thường không? Khi cả Region gặp sự cố thì khôi phục bằng kịch bản nào?",
+        services: ["AWS IAM & Organizations", "AWS KMS & Secrets Manager", "Amazon CloudWatch & CloudTrail", "AWS Config & CloudFormation", "AWS Backup & Disaster Recovery"],
+        interaction: "Bao phủ và kiểm soát quyền hạn, khóa mã hóa, log kiểm toán cho toàn bộ 6 tầng trên.",
+        chapterMap: "Học tại: Ch.04 (IAM), Ch.24 (Monitoring), Ch.25–26 (Security/KMS), Ch.28 (DR & Migration)"
+      }
+    ];
+
+    let activeIdx = 0;
+    const flowBar = document.getElementById("flowBar");
+    const inspector = document.getElementById("inspector");
+
+    function render() {
+      flowBar.innerHTML = LAYERS.map((l, idx) => `
+        <button class="layer-node ${idx === activeIdx ? "active" : ""}" onclick="selectLayer(${idx})" type="button">
+          <span class="layer-step">${l.step}</span>
+          <span class="layer-name">${l.short}</span>
+          <span class="layer-ch">${l.chapters}</span>
+        </button>
+      `).join("");
+
+      const cur = LAYERS[activeIdx];
+      inspector.innerHTML = `
+        <div>
+          <div class="ins-title">${cur.title}</div>
+          <p class="ins-problem">${cur.problem}</p>
+          <div class="service-pills">
+            ${cur.services.map(s => `<span class="pill">${s}</span>`).join("")}
+          </div>
+        </div>
+        <div>
+          <div class="meta-box">
+            <strong>🔗 Mối liên hệ trong kiến trúc:</strong>
+            ${cur.interaction}
+          </div>
+          <div class="chapter-badge">📍 ${cur.chapterMap}</div>
+        </div>
+      `;
+    }
+
+    window.selectLayer = function(idx) {
+      activeIdx = idx;
+      render();
+    };
+
+    render();
+  </script>
+</body>
+</html>
+
