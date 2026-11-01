@@ -75,19 +75,18 @@
                     },
                     {
                         "id":  "aws-saa-c03-03-region-decision-simulator",
-                        "title":  "Mô phỏng Quyết định Chọn AWS Region (4 Trọng số Kiến trúc)",
+                        "title":  "Mô phỏng Quyết định Chọn AWS Region theo 4 Trọng số Kiến trúc",
                         "category":  "learning",
                         "group":  "aws-saa-c03",
                         "path":  "widgets/learning/aws-saa-c03/03-region-decision-simulator.html",
                         "embed_url":  "https://manhtruong03.github.io/notion-widgets/widgets/learning/aws-saa-c03/03-region-decision-simulator.html",
-                        "description":  "Khám phá tương tác giữa 4 yếu tố chọn AWS Region (Compliance, Proximity/Latency, Service Availability, Pricing) trong đề thi SAA-C03.",
+                        "description":  "Explorable Explanation thử nghiệm 4 tiêu chí chọn Region (Compliance, Proximity, Available Services, Pricing) vừa khít khung Notion",
                         "tags":  [
                                      "aws-saa-c03",
                                      "section-03",
-                                     "regions",
-                                     "global-infrastructure"
+                                     "region-selection"
                                  ],
-                        "recommended_height":  340,
+                        "recommended_height":  195,
                         "updated_at":  "2026-11-01"
                     },
                     {
