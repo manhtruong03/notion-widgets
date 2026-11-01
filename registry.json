@@ -1,77 +1,94 @@
-{
-    "hub_title": "Notion Interactive Widgets Hub",
-    "base_url": "https://manhtruong03.github.io/notion-widgets",
-    "categories": [
-        {
-            "id": "learning",
-            "name": "Learning & Architecture Simulators",
-            "description": "Các mô hình tương tác, sơ đồ kiến trúc sống và bộ mô phỏng phục vụ ghi chép học tập trên Notion."
-        },
-        {
-            "id": "work",
-            "name": "Engineering & Project Management",
-            "description": "Micro-tools cho BrSE, Dev, QA, tính toán ước lượng, ma trận quyết định và kiểm thử."
-        },
-        {
-            "id": "productivity",
-            "name": "Productivity & Trackers",
-            "description": "Tiện ích quản lý thời gian, tiến độ mục tiêu, checklist trạng thái cho trang cá nhân Notion."
-        },
-        {
-            "id": "utilities",
-            "name": "General Utilities & Calculators",
-            "description": "Các công cụ tính toán, quy đổi và biểu đồ tương tác đa năng."
-        }
-    ],
-    "widgets": [
-        {
-            "id": "aws-saa-c03-01-intro",
-            "title": "Chương 01 — Trạm Điều Khiển Tương Tác SAA-C03",
-            "category": "learning",
-            "group": "aws-saa-c03",
-            "path": "widgets/learning/aws-saa-c03/01-intro-control-center.html",
-            "embed_url": "https://manhtruong03.github.io/notion-widgets/widgets/learning/aws-saa-c03/01-intro-control-center.html",
-            "description": "Bản đồ tương tác 7 tầng kiến trúc ánh xạ 33 chương AWS SAA-C03, bộ mô phỏng điểm thi Compensatory Scoring (720/1000) và chẩn đoán kích hoạt AWS Account.",
-            "tags": [
-                "aws",
-                "saa-c03",
-                "architecture",
-                "simulator"
-            ],
-            "recommended_height": 420,
-            "updated_at": "2026-11-01"
-        },
-        {
-            "id": "aws-saa-c03-01-spaghetti-untangler",
-            "title": "Sơ đồ Khám phá 7 Tầng Kiến trúc AWS (Gỡ rối Tô mì Ý)",
-            "category": "learning",
-            "group": "aws-saa-c03",
-            "path": "widgets/learning/aws-saa-c03/01-spaghetti-untangler.html",
-            "embed_url": "https://manhtruong03.github.io/notion-widgets/widgets/learning/aws-saa-c03/01-spaghetti-untangler.html",
-            "description": "Mô hình khám phá trực tiếp luồng Request qua 7 tầng kiến trúc AWS và ánh xạ tới 33 chương SAA-C03",
-            "tags": [
-                "aws-saa-c03",
-                "section-01",
-                "architecture-explorer"
-            ],
-            "recommended_height": 300,
-            "updated_at": "2026-11-01"
-        },
-        {
-            "id": "aws-saa-c03-01-compensatory-scoring",
-            "title": "Mô phỏng Quy tắc Chấm điểm Bù trừ (Compensatory Scoring) SAA-C03",
-            "category": "learning",
-            "group": "aws-saa-c03",
-            "path": "widgets/learning/aws-saa-c03/01-compensatory-scoring.html",
-            "embed_url": "https://manhtruong03.github.io/notion-widgets/widgets/learning/aws-saa-c03/01-compensatory-scoring.html",
-            "description": "Explorable Explanation thử nghiệm trọng số 4 Domains (30% - 26% - 24% - 20%) và ngưỡng đậu 720/1000",
-            "tags": [
-                "aws-saa-c03",
-                "section-01",
-                "compensatory-scoring"
-            ],
-            "recommended_height": 310,
-            "updated_at": "2026-11-01"
-        }
-    ]
+﻿{
+    "hub_title":  "Notion Interactive Widgets Hub",
+    "base_url":  "https://manhtruong03.github.io/notion-widgets",
+    "categories":  [
+                       {
+                           "id":  "learning",
+                           "name":  "Learning \u0026 Architecture Simulators",
+                           "description":  "Các mô hình tương tác, sơ đồ kiến trúc sống và bộ mô phỏng phục vụ ghi chép học tập trên Notion."
+                       },
+                       {
+                           "id":  "work",
+                           "name":  "Engineering \u0026 Project Management",
+                           "description":  "Micro-tools cho BrSE, Dev, QA, tính toán ước lượng, ma trận quyết định và kiểm thử."
+                       },
+                       {
+                           "id":  "productivity",
+                           "name":  "Productivity \u0026 Trackers",
+                           "description":  "Tiện ích quản lý thời gian, tiến độ mục tiêu, checklist trạng thái cho trang cá nhân Notion."
+                       },
+                       {
+                           "id":  "utilities",
+                           "name":  "General Utilities \u0026 Calculators",
+                           "description":  "Các công cụ tính toán, quy đổi và biểu đồ tương tác đa năng."
+                       }
+                   ],
+    "widgets":  [
+                    {
+                        "id":  "aws-saa-c03-01-intro",
+                        "title":  "Chương 01 — Trạm Điều Khiển Tương Tác SAA-C03",
+                        "category":  "learning",
+                        "group":  "aws-saa-c03",
+                        "path":  "widgets/learning/aws-saa-c03/01-intro-control-center.html",
+                        "embed_url":  "https://manhtruong03.github.io/notion-widgets/widgets/learning/aws-saa-c03/01-intro-control-center.html",
+                        "description":  "Bản đồ tương tác 7 tầng kiến trúc ánh xạ 33 chương AWS SAA-C03, bộ mô phỏng điểm thi Compensatory Scoring (720/1000) và chẩn đoán kích hoạt AWS Account.",
+                        "tags":  [
+                                     "aws",
+                                     "saa-c03",
+                                     "architecture",
+                                     "simulator"
+                                 ],
+                        "recommended_height":  420,
+                        "updated_at":  "2026-11-01"
+                    },
+                    {
+                        "id":  "aws-saa-c03-01-spaghetti-untangler",
+                        "title":  "Sơ đồ Khám phá 7 Tầng Kiến trúc AWS (Gỡ rối Tô mì Ý)",
+                        "category":  "learning",
+                        "group":  "aws-saa-c03",
+                        "path":  "widgets/learning/aws-saa-c03/01-spaghetti-untangler.html",
+                        "embed_url":  "https://manhtruong03.github.io/notion-widgets/widgets/learning/aws-saa-c03/01-spaghetti-untangler.html",
+                        "description":  "Mô hình khám phá trực tiếp luồng Request qua 7 tầng kiến trúc AWS và ánh xạ tới 33 chương SAA-C03",
+                        "tags":  [
+                                     "aws-saa-c03",
+                                     "section-01",
+                                     "architecture-explorer"
+                                 ],
+                        "recommended_height":  300,
+                        "updated_at":  "2026-11-01"
+                    },
+                    {
+                        "id":  "aws-saa-c03-01-compensatory-scoring",
+                        "title":  "Mô phỏng Quy tắc Chấm điểm Bù trừ (Compensatory Scoring) SAA-C03",
+                        "category":  "learning",
+                        "group":  "aws-saa-c03",
+                        "path":  "widgets/learning/aws-saa-c03/01-compensatory-scoring.html",
+                        "embed_url":  "https://manhtruong03.github.io/notion-widgets/widgets/learning/aws-saa-c03/01-compensatory-scoring.html",
+                        "description":  "Explorable Explanation thử nghiệm trọng số 4 Domains (30% - 26% - 24% - 20%) và ngưỡng đậu 720/1000",
+                        "tags":  [
+                                     "aws-saa-c03",
+                                     "section-01",
+                                     "compensatory-scoring"
+                                 ],
+                        "recommended_height":  310,
+                        "updated_at":  "2026-11-01"
+                    },
+                    {
+                        "id":  "aws-saa-c03-03-region-decision-simulator",
+                        "title":  "Mô phỏng Quyết định Chọn AWS Region (4 Trọng số Kiến trúc)",
+                        "category":  "learning",
+                        "group":  "aws-saa-c03",
+                        "path":  "widgets/learning/aws-saa-c03/03-region-decision-simulator.html",
+                        "embed_url":  "https://manhtruong03.github.io/notion-widgets/widgets/learning/aws-saa-c03/03-region-decision-simulator.html",
+                        "description":  "Khám phá tương tác giữa 4 yếu tố chọn AWS Region (Compliance, Proximity/Latency, Service Availability, Pricing) trong đề thi SAA-C03.",
+                        "tags":  [
+                                     "aws-saa-c03",
+                                     "section-03",
+                                     "regions",
+                                     "global-infrastructure"
+                                 ],
+                        "recommended_height":  340,
+                        "updated_at":  "2026-11-01"
+                    }
+                ]
 }

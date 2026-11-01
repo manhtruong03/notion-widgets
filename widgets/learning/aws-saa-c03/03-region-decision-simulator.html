@@ -1,0 +1,274 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mô phỏng Khám phá: Quyết định Chọn AWS Region (4 Yếu tố Cốt lõi)</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="stylesheet" href="../../../shared/notion-theme.css" />
+  <script src="../../../shared/notion-widget.js"></script>
+</head>
+<body class="bg-transparent text-[var(--foreground,#0f172a)] antialiased p-3">
+  <div class="bg-[var(--card,#ffffff)] text-[var(--foreground,#0f172a)] border border-[var(--border,#e2e8f0)] rounded-xl p-4 shadow-sm">
+    <!-- Header & Quick Scenario Presets -->
+    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-[var(--border,#e2e8f0)]">
+      <div>
+        <div class="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+          Explorable Explanation • 4 Yếu tố Chọn AWS Region
+        </div>
+        <h3 class="text-sm font-semibold text-[var(--foreground,#0f172a)]">
+          Thử thay đổi ràng buộc để xem AWS Region nào được chọn (hoặc bị loại ngay từ vòng gửi xe)
+        </h3>
+      </div>
+      <div class="flex flex-wrap gap-1.5" id="preset-container">
+        <button type="button" data-preset="gdpr" class="preset-btn text-xs font-medium px-2.5 py-1 rounded-md border border-[var(--border,#cbd5e1)] bg-[var(--secondary,#f1f5f9)] text-[var(--foreground,#0f172a)] hover:border-blue-500 transition">
+          🏦 Ngân hàng Pháp (GDPR)
+        </button>
+        <button type="button" data-preset="sea-gaming" class="preset-btn text-xs font-medium px-2.5 py-1 rounded-md border border-[var(--border,#cbd5e1)] bg-[var(--secondary,#f1f5f9)] text-[var(--foreground,#0f172a)] hover:border-blue-500 transition">
+          🎮 Game Đông Nam Á (Latency)
+        </button>
+        <button type="button" data-preset="new-service" class="preset-btn text-xs font-medium px-2.5 py-1 rounded-md border border-[var(--border,#cbd5e1)] bg-[var(--secondary,#f1f5f9)] text-[var(--foreground,#0f172a)] hover:border-blue-500 transition">
+          🤖 Cần Dịch vụ Mới (Preview)
+        </button>
+        <button type="button" data-preset="cost-batch" class="preset-btn text-xs font-medium px-2.5 py-1 rounded-md border border-[var(--border,#cbd5e1)] bg-[var(--secondary,#f1f5f9)] text-[var(--foreground,#0f172a)] hover:border-blue-500 transition">
+          💰 Batch Lưu trữ (Tối ưu Giá)
+        </button>
+      </div>
+    </div>
+
+    <!-- Main 2-Column Interactive Layout -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
+      <!-- Left: 4 Factor Controls (5 cols) -->
+      <div class="md:col-span-5 flex flex-col justify-between gap-2.5 bg-[var(--secondary,#f8fafc)] border border-[var(--border,#e2e8f0)] rounded-lg p-3">
+        <div>
+          <label for="compliance-select" class="block text-xs font-semibold text-[var(--foreground,#0f172a)] mb-1">
+            1. Compliance (Luật định & Chủ quyền dữ liệu)
+          </label>
+          <select id="compliance-select" class="w-full text-xs rounded-md border border-[var(--border,#cbd5e1)] bg-[var(--card,#ffffff)] text-[var(--foreground,#0f172a)] px-2.5 py-1.5 focus:outline-none focus:border-blue-500">
+            <option value="none">Không khóa biên giới quốc gia</option>
+            <option value="eu">Bắt buộc dữ liệu nằm tại Châu Âu (GDPR / Pháp)</option>
+            <option value="us">Bắt buộc dữ liệu nằm tại Mỹ (US Gov / HIPAA nội địa)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="proximity-select" class="block text-xs font-semibold text-[var(--foreground,#0f172a)] mb-1">
+            2. Proximity (Vị trí tập người dùng chính)
+          </label>
+          <select id="proximity-select" class="w-full text-xs rounded-md border border-[var(--border,#cbd5e1)] bg-[var(--card,#ffffff)] text-[var(--foreground,#0f172a)] px-2.5 py-1.5 focus:outline-none focus:border-blue-500">
+            <option value="sea">Đông Nam Á (Việt Nam / Singapore)</option>
+            <option value="eu">Châu Âu (Pháp / Đức / Anh)</option>
+            <option value="us">Bắc Mỹ (Bờ Đông Mỹ / Canada)</option>
+            <option value="sa">Nam Mỹ (Brazil)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="service-select" class="block text-xs font-semibold text-[var(--foreground,#0f172a)] mb-1">
+            3. Available Services (Độ phủ dịch vụ AWS)
+          </label>
+          <select id="service-select" class="w-full text-xs rounded-md border border-[var(--border,#cbd5e1)] bg-[var(--card,#ffffff)] text-[var(--foreground,#0f172a)] px-2.5 py-1.5 focus:outline-none focus:border-blue-500">
+            <option value="core">Dịch vụ cốt lõi (EC2, S3, RDS — có ở mọi Region)</option>
+            <option value="cutting-edge">Dịch vụ/Tính năng mới ra mắt (chỉ có ở Region lớn)</option>
+          </select>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label for="cost-slider" class="text-xs font-semibold text-[var(--foreground,#0f172a)]">
+              4. Đánh đổi: Độ trễ (Latency) ↔ Chi phí (Pricing)
+            </label>
+            <span id="slider-label" class="text-xs font-bold text-blue-600 dark:text-blue-400">Cân bằng (50/50)</span>
+          </div>
+          <input id="cost-slider" type="range" min="0" max="100" value="50" class="w-full accent-blue-600 cursor-pointer" />
+          <div class="flex justify-between text-xs text-[var(--muted-foreground,#64748b)] mt-0.5">
+            <span>⚡ Ưu tiên Latency thấp</span>
+            <span>💲 Ưu tiên Giá rẻ nhất</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Live Region Evaluation & Verdict (7 cols) -->
+      <div class="md:col-span-7 flex flex-col justify-between gap-2.5">
+        <div class="overflow-x-auto border border-[var(--border,#e2e8f0)] rounded-lg">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-[var(--secondary,#f1f5f9)] text-[var(--muted-foreground,#475569)] border-b border-[var(--border,#e2e8f0)]">
+                <th class="py-1.5 px-2.5 font-semibold">AWS Region</th>
+                <th class="py-1.5 px-2 font-semibold">Độ trễ (RTT)</th>
+                <th class="py-1.5 px-2 font-semibold">Hệ số Giá</th>
+                <th class="py-1.5 px-2 font-semibold">Dịch vụ mới</th>
+                <th class="py-1.5 px-2.5 font-semibold">Kết luận Đánh giá</th>
+              </tr>
+            </thead>
+            <tbody id="region-tbody" class="divide-y divide-[var(--border,#e2e8f0)]">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Dynamic Architectural Rule Box -->
+        <div id="verdict-box" class="rounded-lg p-2.5 border border-blue-500/30 bg-blue-500/10 text-xs leading-relaxed">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const REGIONS = [
+      {
+        code: "us-east-1",
+        name: "N. Virginia (US)",
+        jurisdiction: "us",
+        costIndex: 1.00,
+        cuttingEdge: true,
+        latencyMs: { us: 14, eu: 85, sea: 215, sa: 125 }
+      },
+      {
+        code: "eu-west-3",
+        name: "Paris (France / EU)",
+        jurisdiction: "eu",
+        costIndex: 1.14,
+        cuttingEdge: false,
+        latencyMs: { us: 88, eu: 12, sea: 175, sa: 190 }
+      },
+      {
+        code: "ap-southeast-1",
+        name: "Singapore (SEA)",
+        jurisdiction: "apac",
+        costIndex: 1.12,
+        cuttingEdge: true,
+        latencyMs: { us: 210, eu: 170, sea: 18, sa: 310 }
+      },
+      {
+        code: "sa-east-1",
+        name: "São Paulo (Brazil)",
+        jurisdiction: "sa",
+        costIndex: 1.38,
+        cuttingEdge: false,
+        latencyMs: { us: 120, eu: 195, sea: 320, sa: 15 }
+      }
+    ];
+
+    const PRESETS = {
+      "gdpr": { compliance: "eu", proximity: "eu", service: "core", costWeight: 80 },
+      "sea-gaming": { compliance: "none", proximity: "sea", service: "core", costWeight: 10 },
+      "new-service": { compliance: "none", proximity: "eu", service: "cutting-edge", costWeight: 40 },
+      "cost-batch": { compliance: "none", proximity: "sea", service: "core", costWeight: 95 }
+    };
+
+    const complianceEl = document.getElementById("compliance-select");
+    const proximityEl = document.getElementById("proximity-select");
+    const serviceEl = document.getElementById("service-select");
+    const costSliderEl = document.getElementById("cost-slider");
+    const sliderLabelEl = document.getElementById("slider-label");
+    const tbodyEl = document.getElementById("region-tbody");
+    const verdictBoxEl = document.getElementById("verdict-box");
+
+    function evaluateRegions() {
+      const compliance = complianceEl.value;
+      const proximity = proximityEl.value;
+      const service = serviceEl.value;
+      const costWeight = Number(costSliderEl.value) / 100;
+      const latencyWeight = 1 - costWeight;
+
+      if (costWeight >= 0.75) {
+        sliderLabelEl.textContent = `Ưu tiên Chi phí (${Math.round(costWeight * 100)}%)`;
+      } else if (costWeight <= 0.25) {
+        sliderLabelEl.textContent = `Ưu tiên Latency (${Math.round(latencyWeight * 100)}%)`;
+      } else {
+        sliderLabelEl.textContent = `Cân bằng (${Math.round(latencyWeight * 100)}% Latency / ${Math.round(costWeight * 100)}% Giá)`;
+      }
+
+      const evaluated = REGIONS.map(r => {
+        const rtt = r.latencyMs[proximity];
+        let blockedReason = null;
+
+        if (compliance === "eu" && r.jurisdiction !== "eu") {
+          blockedReason = "Vi phạm Compliance (Ngoài EU)";
+        } else if (compliance === "us" && r.jurisdiction !== "us") {
+          blockedReason = "Vi phạm Compliance (Ngoài US)";
+        } else if (service === "cutting-edge" && !r.cuttingEdge) {
+          blockedReason = "Chưa hỗ trợ Dịch vụ mới";
+        }
+
+        // Normalize score (higher is better, 0-100)
+        const latencyScore = Math.max(0, 100 - (rtt / 3.2));
+        const costScore = Math.max(0, 100 - ((r.costIndex - 1.0) * 220));
+        const totalScore = blockedReason ? -1 : Math.round(latencyScore * latencyWeight + costScore * costWeight);
+
+        return { ...r, rtt, blockedReason, totalScore };
+      });
+
+      evaluated.sort((a, b) => b.totalScore - a.totalScore);
+      const winner = evaluated.find(e => !e.blockedReason);
+
+      tbodyEl.innerHTML = evaluated.map((r, idx) => {
+        const isWinner = winner && r.code === winner.code;
+        const rowBg = isWinner
+          ? "bg-emerald-500/10 font-medium"
+          : r.blockedReason
+          ? "opacity-60"
+          : "";
+
+        let statusBadge = "";
+        if (isWinner) {
+          statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded font-semibold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">🏆 Chọn (${r.totalScore}đ)</span>`;
+        } else if (r.blockedReason) {
+          statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded font-semibold bg-rose-500/15 text-rose-700 dark:text-rose-300">🚫 ${r.blockedReason}</span>`;
+        } else {
+          statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded bg-[var(--secondary,#e2e8f0)] text-[var(--muted-foreground,#475569)]">Khả thi (${r.totalScore}đ)</span>`;
+        }
+
+        return `
+          <tr class="${rowBg}">
+            <td class="py-1.5 px-2.5">
+              <div class="font-semibold text-[var(--foreground,#0f172a)]">${r.code}</div>
+              <div class="text-xs text-[var(--muted-foreground,#64748b)]">${r.name}</div>
+            </td>
+            <td class="py-1.5 px-2 font-mono">${r.rtt} ms</td>
+            <td class="py-1.5 px-2 font-mono">${r.costIndex.toFixed(2)}x</td>
+            <td class="py-1.5 px-2">${r.cuttingEdge ? "✅ Đầy đủ" : "⏳ Trễ hơn"}</td>
+            <td class="py-1.5 px-2.5">${statusBadge}</td>
+          </tr>
+        `;
+      }).join("");
+
+      if (winner) {
+        let explanation = "";
+        if (compliance !== "none") {
+          explanation = `<strong>Quy tắc Đề thi SAA-C03:</strong> <code>Compliance (Luật định)</code> luôn là <strong>bộ lọc cứng (Hard Filter)</strong> ưu tiên số 1. Dù <code>us-east-1</code> rẻ hơn (1.00x) hay gần người dùng hơn, dữ liệu bắt buộc phải đặt tại <strong>${winner.code} (${winner.name})</strong> để không vi phạm chủ quyền dữ liệu.`;
+        } else if (service === "cutting-edge" && proximity === "eu") {
+          explanation = `<strong>Quy tắc Đề thi SAA-C03:</strong> Dù người dùng ở Châu Âu (<code>eu-west-3</code> có độ trễ 12 ms), Region đó bị loại vì <strong>chưa có dịch vụ mới (Service Availability)</strong>. Kiến trúc sư buộc phải chọn <strong>${winner.code}</strong> nơi dịch vụ đã khả dụng.`;
+        } else if (costWeight >= 0.75 && winner.code === "us-east-1" && proximity !== "us") {
+          explanation = `<strong>Quy tắc Đề thi SAA-C03:</strong> Khi bài toán là xử lý Batch/Lưu trữ không nhạy cảm độ trễ và ưu tiên <strong>Pricing (Chi phí tối thiểu)</strong>, <strong>${winner.code} (1.00x)</strong> thắng thế dù cách xa người dùng (${winner.rtt} ms) so với Region bản địa đắt đỏ hơn (như <code>sa-east-1</code> đắt gấp 1.38x).`;
+        } else {
+          explanation = `<strong>Quy tắc Đề thi SAA-C03:</strong> Khi không bị khóa bởi Compliance và dịch vụ đã sẵn sàng, <strong>${winner.code} (${winner.name})</strong> chiến thắng nhờ tối ưu độ trễ gần người dùng nhất (<strong>${winner.rtt} ms</strong>) với chi phí hợp lý (<strong>${winner.costIndex.toFixed(2)}x</strong>).`;
+        }
+        verdictBoxEl.innerHTML = explanation;
+      }
+    }
+
+    document.querySelectorAll(".preset-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const p = PRESETS[btn.dataset.preset];
+        if (!p) return;
+        complianceEl.value = p.compliance;
+        proximityEl.value = p.proximity;
+        serviceEl.value = p.service;
+        costSliderEl.value = p.costWeight;
+        evaluateRegions();
+      });
+    });
+
+    [complianceEl, proximityEl, serviceEl, costSliderEl].forEach(el => {
+      el.addEventListener("input", evaluateRegions);
+      el.addEventListener("change", evaluateRegions);
+    });
+
+    evaluateRegions();
+  </script>
+</body>
+</html>
+
