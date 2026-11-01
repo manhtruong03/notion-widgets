@@ -58,11 +58,11 @@ $htmlContent = Get-Content -LiteralPath $SourceHtmlPath -Raw -Encoding UTF8
 
 if ($htmlContent -notmatch 'notion-theme\.css') {
     $injectHead = @"
+<head>
   <link rel="stylesheet" href="$upPrefix/shared/notion-theme.css" />
   <script src="$upPrefix/shared/notion-widget.js"></script>
-</head>
 "@
-    $htmlContent = $htmlContent -replace '</head>', $injectHead
+    $htmlContent = $htmlContent -replace '<head>', $injectHead
 }
 
 Set-Content -LiteralPath $destFile -Value $htmlContent -Encoding UTF8

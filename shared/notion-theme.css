@@ -18,7 +18,8 @@ html {
   --primary-foreground: #ffffff;
   --secondary: #f1f1ef;
   --secondary-foreground: #37352f;
-  --accent: #e8f3fc;
+  --accent: #2563eb;
+  --accent-bg: #e8f3fc;
   font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 }
 
@@ -36,7 +37,8 @@ html {
     --primary-foreground: #ffffff;
     --secondary: #2c2c2c;
     --secondary-foreground: #ffffffcf;
-    --accent: #1d354d;
+    --accent: #60a5fa;
+    --accent-bg: #1d354d;
   }
 }
 
@@ -53,5 +55,6 @@ html.dark {
   --primary-foreground: #ffffff;
   --secondary: #2c2c2c;
   --secondary-foreground: #ffffffcf;
-  --accent: #1d354d;
+  --accent: #60a5fa;
+  --accent-bg: #1d354d;
 }
